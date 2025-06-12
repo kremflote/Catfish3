@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
 using static ItemGrid;
-using static UnityEditor.Progress;
 
 public class InventoryController : MonoBehaviour
 {

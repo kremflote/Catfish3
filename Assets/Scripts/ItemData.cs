@@ -4,6 +4,8 @@ using UnityEngine;
 [CreateAssetMenu(menuName = "Item/Item Data")]
 public class ItemData : ScriptableObject
 {
+    // representasjon av et item i inventory
+
     public string itemName;
     public Sprite itemIcon;
     public int width = 1;

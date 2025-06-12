@@ -9,16 +9,14 @@ public class InputManager : MonoBehaviour
     // sentraliserer input her. om flere klasser har input objekter som de kaller på i egne update metoder vil ting kjøre dobbelt.
     // essensielt at alt input blir fanget i update i denne klassen, som sender det videre til relevant klasse gjennom events
 
+    // unity har eget input system som jeg egt bør sette opp..
+
     public event Action OnTabPressed;
     public event Action OnQPressed;
     public event Action OnTPressed;
     public event Action OnUPressed;
     public event Action<int> OnHotbarKeyPressed;
     public event Action<string> OnMouseClick;
-
-
-    // Addet denne klassen til å håndtere kommunikasjon andre veien mot inventorycontroller.
-    // På den måten slipper vi å ha en referanse til inventorycontroller i inventorytogglemanager.
 
     private void Awake()
     {
