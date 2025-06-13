@@ -1125,6 +1125,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: c03954e38de209e42a2292cbd968e2e0, type: 2}
   - {fileID: 11400000, guid: c01548f20e64ab040a95534c1543a04c, type: 2}
   - {fileID: 11400000, guid: a7343c69dfedb9b48a744035405ea20c, type: 2}
+  - {fileID: 11400000, guid: 07e69ddf2ad2c424daddc1c36acf7850, type: 2}
   itemPrefab: {fileID: 3579055318759952443, guid: f7b5da05df3a602419f41add21a883e9, type: 3}
   canvasTransform: {fileID: 1442657769171012273}
 --- !u!114 &3774149635137966657
