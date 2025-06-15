@@ -13,6 +13,11 @@ namespace StarterAssets
 #endif
 	public class FirstPersonController : NetworkBehaviour
 	{
+		// Dette er unity sin template for en klasse som fikser first-person movement og kamera
+		// jeg har lagt til slik at den også håndterer movement når player åpner inventory
+		// dette bør delegeres til en annen klasse senere
+
+
 		[Header("Player")]
 		[Tooltip("Move speed of the character in m/s")]
 		public float MoveSpeed = 4.0f;
@@ -56,7 +61,6 @@ namespace StarterAssets
         [Header("InventoryToggleManager")]
         [Tooltip("Changes movement if inventory is open")]
         InventoryToggleManager inventoryToggleManager;
-
 		private bool mouseEnabled;
 
         // cinemachine
@@ -97,18 +101,9 @@ namespace StarterAssets
 		public override void OnStartClient()
 		{
 			if (base.IsOwner)
-			{
-				Transform parent = transform.parent;
-				Transform mainCamera = parent.Find("MainCamera");
-                Transform managers = parent.Find("Managers");
-                Transform inventoryToggleManagerGO = managers.Find("InventoryToggleManager");
-
-                _mainCamera = mainCamera.gameObject;
+            {
+                InitializeComponents();
                 _mainCamera.SetActive(true);
-                _controller = GetComponent<CharacterController>();
-                _input = GetComponent<StarterAssetsInputs>();
-                inventoryToggleManager = inventoryToggleManagerGO.GetComponent<InventoryToggleManager>();
-
                 mouseEnabled = false;
 
 #if ENABLE_INPUT_SYSTEM
@@ -121,35 +116,21 @@ namespace StarterAssets
                 _jumpTimeoutDelta = JumpTimeout;
                 _fallTimeoutDelta = FallTimeout;
             }
-            else
-            {
-                gameObject.GetComponent<FirstPersonController>().enabled = false;
-
-                // ❗ Disable audio listener on remote players
-                AudioListener audioListener = GetComponent<AudioListener>();
-                if (audioListener != null)
-                {
-                    audioListener.enabled = false;
-                }
-
-                // ❗ Disable input scripts for remote players
-                StarterAssetsInputs input = GetComponent<StarterAssetsInputs>();
-                if (input != null)
-                {
-                    input.enabled = false;
-                }
-
-#if ENABLE_INPUT_SYSTEM
-                PlayerInput playerInput = GetComponent<PlayerInput>();
-                if (playerInput != null)
-                {
-                    playerInput.enabled = false;
-                }
-#endif
-            }
-
         }
-		private void Update()
+
+        private void InitializeComponents()
+        {
+            Transform parent = transform.parent;
+            Transform mainCamera = parent.Find("MainCamera");
+            Transform managers = parent.Find("Managers");
+            Transform inventoryToggleManagerGO = managers.Find("InventoryToggleManager");
+            inventoryToggleManager = inventoryToggleManagerGO.GetComponent<InventoryToggleManager>();
+            _mainCamera = mainCamera.gameObject;
+            _controller = GetComponent<CharacterController>();
+            _input = GetComponent<StarterAssetsInputs>();
+        }
+
+        private void Update()
 		{
 			if (base.IsOwner == false) return;
             JumpAndGravity();
