@@ -20,10 +20,16 @@ namespace StarterAssets
 
         private PlayerInput playerInput;
 
+        [Header("Mouse Cursor Settings")]
+        public bool cursorLocked = true;
+        public bool cursorInputForLook = true;
+
         private void Awake()
         {
             playerInput = GetComponent<PlayerInput>();
         }
+
+
 
         public override void OnStartClient()
         {
@@ -34,7 +40,6 @@ namespace StarterAssets
                 enabled = false;
                 return;
             }
-
             InitializeInput();
         }
 
@@ -64,6 +69,7 @@ namespace StarterAssets
 
             MoveInput = moveAction.ReadValue<Vector2>();
             LookInput = lookAction.ReadValue<Vector2>();
+
             // Jump and sprint are updated via callback
         }
 

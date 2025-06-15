@@ -15,7 +15,7 @@ namespace StarterAssets
     {
         // Dette er unity sin template for en klasse som fikser first-person movement og kamera
         // jeg har lagt til slik at den også håndterer movement når player åpner inventory
-        // dette bør delegeres til en annen klasse senere
+        // dette bør delegeres til en annen klasse & actionmap 
 
 
         [Header("Player")]
@@ -79,10 +79,13 @@ namespace StarterAssets
 
 #if ENABLE_INPUT_SYSTEM
         private PlayerInput _playerInput;
+        public InputAction playerControls;
+
 #endif
         private CharacterController _controller;
         private StarterAssetsInputsModern _input;
         private GameObject _mainCamera;
+
 
         private const float _threshold = 0.01f;
 
@@ -129,6 +132,17 @@ namespace StarterAssets
             _controller = GetComponent<CharacterController>();
             _input = GetComponent<StarterAssetsInputsModern>();
         }
+
+        private void OnEnable()
+        {
+            playerControls.Enable();
+        }
+
+        private void OnDisable()
+        {
+            playerControls.Disable();
+        }
+
 
         private void Update()
         {

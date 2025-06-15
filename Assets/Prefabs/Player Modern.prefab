@@ -164,8 +164,8 @@ GameObject:
   - component: {fileID: 7179494805434369337}
   - component: {fileID: 4403270621448585627}
   - component: {fileID: 1836650178498124470}
+  - component: {fileID: 565193557219766673}
   - component: {fileID: 5831825206762493091}
-  - component: {fileID: 4330353926910673873}
   - component: {fileID: 6478320082024089270}
   m_Layer: 8
   m_Name: PlayerCapsule
@@ -332,6 +332,22 @@ MonoBehaviour:
   m_DefaultActionMap: Player
   m_SplitScreenIndex: -1
   m_Camera: {fileID: 0}
+--- !u!114 &565193557219766673
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3707571996107640156}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f734b9f1e37527e419721eb906a50c53, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  InputActions: {fileID: 0}
+  WalkSpeed: 5
+  RotateSpeed: 5
+  JumpSpeed: 5
 --- !u!114 &5831825206762493091
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -375,38 +391,6 @@ MonoBehaviour:
     X: 0
     Y: 0
     Z: 0
---- !u!114 &4330353926910673873
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3707571996107640156}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4eec5482a78ccf94fb19f6ce124176fa, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _componentIndexCache: 255
-  _addedNetworkObject: {fileID: 4206797736899553925}
-  _networkObjectCache: {fileID: 0}
-  MoveSpeed: 4
-  SprintSpeed: 6
-  RotationSpeed: 1
-  SpeedChangeRate: 10
-  JumpHeight: 1.2
-  Gravity: -15
-  JumpTimeout: 0.1
-  FallTimeout: 0.15
-  Grounded: 1
-  GroundedOffset: -0.14
-  GroundedRadius: 0.5
-  GroundLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  CinemachineCameraTarget: {fileID: 4931084307880395033}
-  TopClamp: 90
-  BottomClamp: -90
 --- !u!114 &6478320082024089270
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -422,6 +406,8 @@ MonoBehaviour:
   _componentIndexCache: 255
   _addedNetworkObject: {fileID: 4206797736899553925}
   _networkObjectCache: {fileID: 0}
+  cursorLocked: 1
+  cursorInputForLook: 1
 --- !u!1 &4367201381518215038
 GameObject:
   m_ObjectHideFlags: 0

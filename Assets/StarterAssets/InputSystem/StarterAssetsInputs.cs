@@ -8,7 +8,7 @@ using FishNet.Connection;
 namespace StarterAssets
 {
 
-    /* ⚠️ What’s Less Optimal / Old-School
+    /* ⚠️ What’s Less Optimal / Old-School according to chatGPT
 It assumes “Invoke Unity Events” in PlayerInput settings, which wires input events to functions like OnMove, OnJump, etc.
 
 This is simple, but limits flexibility (e.g., no clean way to switch action maps or use multiple control schemes dynamically).
