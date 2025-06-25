@@ -3333,7 +3333,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 211a9f6ec51ddc14f908f5acc0cd0423, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _playerPrefab: {fileID: 4206797736899553925, guid: d0ff911904a633448a0c5f94b99704c4, type: 3}
+  _playerPrefab: {fileID: 4206797736899553925, guid: f97e991fb65ca044abd28bd35f82d28f, type: 3}
   _addToDefaultScene: 1
   Spawns:
   - {fileID: 5749530143211754293}
@@ -4355,7 +4355,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7962832898442977970, guid: 3ea3b3220cd587648ba78430de28311b, type: 3}
       propertyPath: <SceneId>k__BackingField
-      value: 2516451115
+      value: 3204447147
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
