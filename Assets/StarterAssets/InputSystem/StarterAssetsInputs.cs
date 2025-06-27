@@ -6,16 +6,7 @@ using FishNet.Object;
 using FishNet.Connection;
 
 namespace StarterAssets
-{
-
-    /* ⚠️ What’s Less Optimal / Old-School according to chatGPT
-It assumes “Invoke Unity Events” in PlayerInput settings, which wires input events to functions like OnMove, OnJump, etc.
-
-This is simple, but limits flexibility (e.g., no clean way to switch action maps or use multiple control schemes dynamically).
-
-It doesn’t use InputActionAsset references directly, so you can't easily query action state like .IsPressed() or .triggered.
-
-Input values are stored manually in public fields (move, look, etc.). This works, but can get messy with complex input logic, and disconnects you from Unity's input rebind/UI systems. */
+{   
     public class StarterAssetsInputs : NetworkBehaviour
     {
         [Header("Character Input Values")]

@@ -1,39 +1,36 @@
-using FishNet.Connection;
+using System;
+using System.Collections;
+using System.Collections.Generic;
 using FishNet.Object;
-using System.Globalization;
+using StarterAssets;
 using UnityEngine;
+using static UnityEngine.GraphicsBuffer;
 
 public class InteractableObject : NetworkBehaviour
 {
-    public string itemName;
-    public InventoryItem inventoryItem; // Not synced by default — must send manually
+    public bool playerInRange;
+    public bool pickupEnabled;
 
-    private bool isTaken = false;
+    public FirstPersonController firstPersonController { get; set; }
 
-    [ServerRpc(RequireOwnership = false)]
-    public void RequestPickupServerRpc(NetworkConnection conn = null)
+    private void OnTriggerEnter(Collider other)
     {
-        if (isTaken) return;
-
-        GameObject playerObj = conn?.FirstObject?.gameObject;
-        if (playerObj == null) return;
-
-        var inv = playerObj.GetComponentInChildren<InventoryController>();
-        if (inv != null)
+        if (other.CompareTag("Player"))
         {
-            inv.InsertItem(inventoryItem); // pass itemData from this object
-            isTaken = true;
-            Despawn(); // Despawn this object on all clients
+            playerInRange = true;
         }
     }
 
-    private void OnTriggerStay(Collider other)
+    private void OnTriggerExit(Collider other)
     {
-        if (!IsOwner) return;
-
-        if (other.CompareTag("Player") && Input.GetKeyDown(KeyCode.Mouse0))
+        if (other.CompareTag("Player"))
         {
-            RequestPickupServerRpc();
+            playerInRange = false;
         }
+    }
+
+    internal void Interact()
+    {
+        throw new NotImplementedException();
     }
 }

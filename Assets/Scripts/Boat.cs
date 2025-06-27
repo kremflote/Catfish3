@@ -1,7 +1,9 @@
 using UnityEngine;
 using FishNet.Object;
+using StarterAssets;
+using System;
 
-public class Boat : NetworkBehaviour
+public class Boat : NetworkBehaviour, IDrivable
 {
     [Header("Movement Settings")]
     public float moveSpeed = 5f;
@@ -10,27 +12,36 @@ public class Boat : NetworkBehaviour
     private float moveInput;
     private float turnInput;
 
-    private bool turnedOn = false;
+    public GameObject wheel;
+    public GameObject throttle;
+    public GameObject gear;
+    public GameObject ignition1;
 
+    public IgnitionKey1 ignitionKey;
+    public bool IsKeyInserted { get; set; } // player går i "pilot mode" når han inserter key, så denne boolen styrer basically om båten blir styrt eller ikke
+    public FirstPersonController firstPersonController { get; set; }
+    public BoatController boatController { get; set; }
+
+    private void Start()
+    {
+        ignitionKey = ignition1.GetComponent<IgnitionKey1>();
+        IsKeyInserted = false;
+    }
     void Update()
     {
         if (!IsOwner) return;
+        if (ignitionKey.IsIn() == false) return;
 
-        moveInput = Input.GetAxis("Vertical");
-        turnInput = Input.GetAxis("Horizontal");
+        InitializePilot();
 
-        // Send input to the server for authoritative movement
-        SendInputToServer(moveInput, turnInput);
+        MoveBoat(moveInput, turnInput);
     }
 
-    [ServerRpc]
-    private void SendInputToServer(float move, float turn)
+    private void InitializePilot()
     {
-        // Server executes movement
-        MoveBoat(move, turn);
+        // boatController.firstPersonController = ignitionKey.firstPersonController;
     }
 
-    [Server]
     private void MoveBoat(float move, float turn)
     {
         // Time.fixedDeltaTime used for consistent movement on server
@@ -39,5 +50,17 @@ public class Boat : NetworkBehaviour
 
         transform.Translate(Vector3.forward * moveAmount);
         transform.Rotate(Vector3.up * turnAmount);
+    }
+    public void InsertKey()
+    {
+        throw new System.NotImplementedException();
+    }
+    public void EnterPilotMode()
+    {
+        throw new System.NotImplementedException();
+    }
+    public void ExitPilotMode()
+    {
+        throw new System.NotImplementedException();
     }
 }

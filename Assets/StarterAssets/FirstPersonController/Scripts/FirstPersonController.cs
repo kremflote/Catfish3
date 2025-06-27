@@ -13,7 +13,7 @@ namespace StarterAssets
 #endif
 	public class FirstPersonController : NetworkBehaviour
 	{
-		// Dette er unity sin template for en klasse som fikser first-person movement og kamera
+		// Dette er unity sin template for en klasse som fikser first-person movement- og kamera
 		// jeg har lagt til slik at den også håndterer movement når player åpner inventory
 		// dette bør delegeres til en annen klasse senere
 
@@ -192,7 +192,7 @@ namespace StarterAssets
 			}
 		}
 
-		private void Move()
+        public void Move()
 		{
 			// set target speed based on move speed, sprint speed and if sprint is pressed
 			float targetSpeed = _input.sprint ? SprintSpeed : MoveSpeed;
@@ -239,7 +239,7 @@ namespace StarterAssets
 			_controller.Move(inputDirection.normalized * (_speed * Time.deltaTime) + new Vector3(0.0f, _verticalVelocity, 0.0f) * Time.deltaTime);
 		}
 
-		private void JumpAndGravity()
+        public void JumpAndGravity()
 		{
 			if (Grounded)
 			{
