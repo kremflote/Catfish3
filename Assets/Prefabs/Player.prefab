@@ -165,7 +165,6 @@ GameObject:
   - component: {fileID: 3188586399734228761}
   - component: {fileID: 1836650178498124470}
   - component: {fileID: 5831825206762493091}
-  - component: {fileID: 8239299482008806000}
   - component: {fileID: 8750163120122580453}
   m_Layer: 8
   m_Name: PlayerCapsule
@@ -249,6 +248,9 @@ MonoBehaviour:
   CinemachineCameraTarget: {fileID: 4931084307880395033}
   TopClamp: 89
   BottomClamp: -89
+  InventoryToggleManager: {fileID: 0}
+  _playerInput: {fileID: 0}
+  _controller: {fileID: 0}
 --- !u!114 &1836650178498124470
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -390,21 +392,6 @@ MonoBehaviour:
     X: 0
     Y: 0
     Z: 0
---- !u!114 &8239299482008806000
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3707571996107640156}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ed44348c22304ba47b918fd6d477648c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  firstPersonController: {fileID: 3188586399734228761}
-  boatController: {fileID: 0}
-  PlayerInput: {fileID: 1836650178498124470}
 --- !u!114 &8750163120122580453
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -412,7 +399,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3707571996107640156}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e087ecce43ebbff45a1b360637807d93, type: 3}
   m_Name: 
@@ -440,7 +427,6 @@ GameObject:
   - component: {fileID: 3584368846286781135}
   - component: {fileID: 1137363560515037145}
   - component: {fileID: 1337532440302967053}
-  - component: {fileID: 3037662446838635835}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -595,7 +581,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4367201381518215038}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c6935e15b1eaabd489056be292154faa, type: 3}
   m_Name: 
@@ -603,29 +589,6 @@ MonoBehaviour:
   onTarget: 0
   selectedObject: {fileID: 0}
   _playerInput: {fileID: 1836650178498124470}
-  firstPersonController: {fileID: 3188586399734228761}
---- !u!114 &3037662446838635835
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4367201381518215038}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e087ecce43ebbff45a1b360637807d93, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _componentIndexCache: 255
-  _addedNetworkObject: {fileID: 4206797736899553925}
-  _networkObjectCache: {fileID: 0}
-  move: {x: 0, y: 0}
-  look: {x: 0, y: 0}
-  jump: 0
-  sprint: 0
-  analogMovement: 0
-  cursorLocked: 1
-  cursorInputForLook: 1
 --- !u!1 &4501938634620769567
 GameObject:
   m_ObjectHideFlags: 0

@@ -2,38 +2,25 @@ using FishNet.Object;
 using StarterAssets;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.Playables;
 
-public class PlayerStateMachine : NetworkBehaviour
+public class PlayerStateMachine
 {
-    public FirstPersonController firstPersonController;
-    public BoatController boatController;
-    public PlayerInput PlayerInput;
+    public PlayerState CurrentState { get; private set; }
 
-    private string currentState;
-    private enum PlayerState { Walking, Piloting }
-
-    public void SwitchState(string state)
+    public void Initialize(PlayerState startingState)
     {
-        this.currentState = state;
+        CurrentState = startingState;
+        startingState.Enter();
     }
 
-    private void Start()
+    public void SwitchState(PlayerState newState)
     {
-        PlayerInput = GetComponent<PlayerInput>();
-        // Set the initial state
-        SwitchState("Walking");
+        CurrentState.Exit();
+        CurrentState = newState;
+        newState.Enter();
     }
 
-    private void Update()
-    {
-        if (!IsOwner) return;
-
-        switch (currentState)
-        {
-            case "Walking":
-
-                break;
-        }
-    }
-
+    public void Update() => CurrentState?.Update();
+    public void LateUpdate() => CurrentState?.LateUpdate();
 }

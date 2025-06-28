@@ -13,7 +13,6 @@ public class SelectionManager : MonoBehaviour
     public bool onTarget;
     public GameObject selectedObject;
     public PlayerInput _playerInput;
-    public FirstPersonController firstPersonController;
 
     private void Start()
     {
@@ -49,7 +48,6 @@ public class SelectionManager : MonoBehaviour
             if (interactable && interactable.playerInRange)
             {
                 onTarget = true;
-                interactable.firstPersonController = this.firstPersonController;
                 selectedObject = interactable.gameObject;
             }
             else

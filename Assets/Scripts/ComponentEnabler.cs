@@ -46,6 +46,7 @@ public class PlayerComponentsEnabler : NetworkBehaviour
         EnablePlayerCapsuleComponents();
         EnableCanvasComponents();
         EnableManagerComponents();
+        EnablePlayerComponents();
     }
 
     private void EnablePlayerFollowCameraComponents()
@@ -100,6 +101,13 @@ public class PlayerComponentsEnabler : NetworkBehaviour
 
         var starterAssetsInputs = playerCapsuleGO.GetComponent<StarterAssetsInputs>();
         if (starterAssetsInputs != null) starterAssetsInputs.enabled = true;
+    }
+
+    private void EnablePlayerComponents()
+    {
+        SelectionManager selectionManager = GetComponent<SelectionManager>();
+        if (selectionManager != null)
+            selectionManager.enabled = true;
     }
 
     private void EnableCanvasComponents()

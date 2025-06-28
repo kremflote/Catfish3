@@ -58,16 +58,17 @@ namespace StarterAssets
 		[Tooltip("How far in degrees can you move the camera down")]
 		public float BottomClamp = -90.0f;
 
-        [Header("InventoryToggleManager")]
-        [Tooltip("Changes movement if inventory is open")]
-        InventoryToggleManager inventoryToggleManager;
 		private bool mouseEnabled;
 
         // cinemachine
         private float _cinemachineTargetPitch;
 
-		// player
-		private float _speed;
+        [Header("InventoryToggleManager")]
+        [Tooltip("Changes movement if inventory is open")]
+        public InventoryToggleManager InventoryToggleManager;
+
+        // player
+        private float _speed;
 		private float _rotationVelocity;
 		private float _verticalVelocity;
 		private float _terminalVelocity = 53.0f;
@@ -76,12 +77,13 @@ namespace StarterAssets
 		private float _jumpTimeoutDelta;
 		private float _fallTimeoutDelta;
 
-	
+
 #if ENABLE_INPUT_SYSTEM
-		private PlayerInput _playerInput;
+        public PlayerInput _playerInput;
 #endif
-		private CharacterController _controller;
-		private StarterAssetsInputs _input;
+        public CharacterController _controller;
+        public PlayerStateMachine StateMachine { get; private set; }
+        public StarterAssetsInputs _input {get; set; }
 		private GameObject _mainCamera;
 
 		private const float _threshold = 0.01f;
@@ -106,6 +108,10 @@ namespace StarterAssets
                 _mainCamera.SetActive(true);
                 mouseEnabled = false;
 
+                StateMachine = new PlayerStateMachine();
+                StateMachine.Initialize(new MovementState(this));
+
+
 #if ENABLE_INPUT_SYSTEM
                 _playerInput = GetComponent<PlayerInput>();
 #else
@@ -124,33 +130,28 @@ namespace StarterAssets
             Transform mainCamera = parent.Find("MainCamera");
             Transform managers = parent.Find("Managers");
             Transform inventoryToggleManagerGO = managers.Find("InventoryToggleManager");
-            inventoryToggleManager = inventoryToggleManagerGO.GetComponent<InventoryToggleManager>();
+            InventoryToggleManager = inventoryToggleManagerGO.GetComponent<InventoryToggleManager>();
             _mainCamera = mainCamera.gameObject;
             _controller = GetComponent<CharacterController>();
             _input = GetComponent<StarterAssetsInputs>();
         }
 
         private void Update()
-		{
-			if (base.IsOwner == false) return;
-            JumpAndGravity();
-			GroundedCheck();
-			Move();
-		}
-
-		private void LateUpdate()
         {
-            if (base.IsOwner == false) return;
-            if (inventoryToggleManager.GetIsOpen() == false & mouseEnabled == false)
-            {
-                CameraRotation();
-            }
-            UpdateCursorLock();
+            if (!IsOwner) return;
+            StateMachine.Update();
         }
 
-        private void UpdateCursorLock()
+        private void LateUpdate()
         {
-            if (inventoryToggleManager.GetIsOpen() == true)
+            if (!IsOwner) return;
+            StateMachine.LateUpdate();
+        }
+
+
+        public void UpdateCursorLock()
+        {
+            if (InventoryToggleManager.GetIsOpen() == true)
             {
                 mouseEnabled = true;
                 Cursor.lockState = CursorLockMode.None;
@@ -163,14 +164,14 @@ namespace StarterAssets
             }
         }
 
-        private void GroundedCheck()
+        public void GroundedCheck()
 		{
 			// set sphere position, with offset
 			Vector3 spherePosition = new Vector3(transform.position.x, transform.position.y - GroundedOffset, transform.position.z);
 			Grounded = Physics.CheckSphere(spherePosition, GroundedRadius, GroundLayers, QueryTriggerInteraction.Ignore);
 		}
 
-		private void CameraRotation()
+        public void CameraRotation()
 		{
 			// if there is an input
 			if (_input.look.sqrMagnitude >= _threshold)
