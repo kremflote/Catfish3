@@ -9,6 +9,7 @@ public class MovementState : PlayerState
         controller.GroundedCheck();
         controller.JumpAndGravity();
         controller.Move();
+        controller.UpdateCursorLock();
     }
 
     public override void LateUpdate()

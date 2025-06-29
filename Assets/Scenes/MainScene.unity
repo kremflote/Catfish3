@@ -1089,9 +1089,11 @@ MonoBehaviour:
   _componentIndexCache: 255
   _addedNetworkObject: {fileID: 5198844830452083011}
   _networkObjectCache: {fileID: 0}
+  playerInRange: 0
+  pickupEnabled: 0
   isOn: 0
+  isIn: 0
   key1: {fileID: 859324651}
-  hasChanged: 0
 --- !u!1 &717351879
 GameObject:
   m_ObjectHideFlags: 0
@@ -2396,7 +2398,6 @@ MonoBehaviour:
   _addedNetworkObject: {fileID: 5198844830452083011}
   _networkObjectCache: {fileID: 0}
   playerInRange: 0
-  ItemName: 
   pickupEnabled: 0
 --- !u!65 &1689932903
 BoxCollider:
@@ -3648,6 +3649,7 @@ GameObject:
   - component: {fileID: 8142230073739275308}
   - component: {fileID: 1707796570462915844}
   - component: {fileID: 8142230073739275309}
+  - component: {fileID: 8142230073739275310}
   m_Layer: 0
   m_Name: NetworkManager
   m_TagString: Untagged
@@ -4768,7 +4770,7 @@ MonoBehaviour:
   <PrefabId>k__BackingField: 65535
   <SpawnableCollectionId>k__BackingField: 0
   <AssetPathHash>k__BackingField: 0
-  <SceneId>k__BackingField: 3589010427
+  <SceneId>k__BackingField: 4244240747
   SerializedTransformProperties:
     Position: {x: 0, y: 0, z: 0}
     Rotation: {x: 0, y: 0, z: 0, w: 0}
@@ -5748,6 +5750,25 @@ MonoBehaviour:
   _port: 7770
   _maximumClients: 1060
   _clientAddress: localhost
+--- !u!114 &8142230073739275310
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1707796570462915851}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6d0962ead4b02a34aae248fccce671ce, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  WriteSceneObjectDetails: 1
+  ValidateRpcLengths: 0
+  DisableObserversRpcLinks: 0
+  DisableTargetRpcLinks: 0
+  DisableServerRpcLinks: 0
+  DisableReplicateRpcLinks: 0
+  DisableReconcileRpcLinks: 0
 --- !u!114 &8142230073987857305
 MonoBehaviour:
   m_ObjectHideFlags: 0

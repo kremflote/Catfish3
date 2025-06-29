@@ -6,10 +6,9 @@ public class InputManager : MonoBehaviour
     InventoryToggleManager inventoryToggleManager;
     InventoryController inventoryController;
 
-    // sentraliserer input her. om flere klasser har input objekter som de kaller på i egne update metoder vil ting kjøre dobbelt.
-    // essensielt at alt input blir fanget i update i denne klassen, som sender det videre til relevant klasse gjennom events
+    // Sentraliserte noe inputs her som ikke har å gjøre med movement
+    // bør refaktoreres til å bruke unity sitt input system smartere
 
-    // unity har eget input system som jeg egt bør sette opp..
 
     public event Action OnTabPressed;
     public event Action OnQPressed;
@@ -25,8 +24,7 @@ public class InputManager : MonoBehaviour
 
     void Update()
     {
-            
-            if (Input.GetKeyDown(KeyCode.Tab))
+        if (Input.GetKeyDown(KeyCode.Tab))
             {
                 bool isOpen = inventoryToggleManager.GetIsOpen();
                 if (isOpen && !inventoryController.SelectedItemIsNull())
@@ -38,7 +36,6 @@ public class InputManager : MonoBehaviour
                     }
                     else
                     {
-
                         Debug.Log("Player dropped item successfully");
                         inventoryController.UpdateHotbar();
                         OnTabPressed?.Invoke();
@@ -54,12 +51,12 @@ public class InputManager : MonoBehaviour
             }
                 if (!isOpen)
                 {
-
                     inventoryController.UpdateInventoryFromHotbar();
                     OnTabPressed?.Invoke();
                     return;
             }
         }
+
         if (Input.GetKeyDown(KeyCode.Q)) OnQPressed?.Invoke();
         if (Input.GetKeyDown(KeyCode.T)) OnTPressed?.Invoke();
         if (Input.GetKeyDown(KeyCode.U)) OnUPressed?.Invoke();
@@ -89,9 +86,6 @@ public class InputManager : MonoBehaviour
 
 
     }
-
-
-
     public String GetMouseInput()
     {
         if (Input.GetMouseButtonDown(0))

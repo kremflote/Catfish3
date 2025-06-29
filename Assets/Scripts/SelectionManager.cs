@@ -68,8 +68,6 @@ public class SelectionManager : MonoBehaviour
                 // Handle interaction logic here, e.g., picking up the item
                 // You can add more logic here to handle the interaction
             }
-
-            else
             {
                 interactable.Interact();
             }
