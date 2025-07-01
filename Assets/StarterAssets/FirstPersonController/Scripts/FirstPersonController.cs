@@ -17,7 +17,7 @@ namespace StarterAssets
 		// jeg har lagt til slik at den også håndterer movement når player åpner inventory
 		// dette bør delegeres til en annen klasse senere
 
-
+		
 		[Header("Player")]
 		[Tooltip("Move speed of the character in m/s")]
 		public float MoveSpeed = 4.0f;
@@ -156,7 +156,6 @@ namespace StarterAssets
                 mouseEnabled = true;
                 Cursor.lockState = CursorLockMode.None;
             }
-
             else
             {
                 mouseEnabled = false;
