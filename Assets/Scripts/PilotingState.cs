@@ -15,11 +15,13 @@ public class PilotingState : PlayerState
     public override void Update()
     {
         bController.Steer();
+        pController.UpdateCursorLock();
     }
 
     public override void LateUpdate()
     {
         if (!inventoryToggleManager.GetIsOpen())
+            
             pController.CameraRotation();
     }
 

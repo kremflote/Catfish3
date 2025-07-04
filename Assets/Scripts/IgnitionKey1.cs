@@ -11,6 +11,8 @@ public class IgnitionKey1 : InteractableObject
 
     [SerializeField] private Transform key1;
 
+    public MeshRenderer key1MeshRenderer; 
+
     public BoatController BoatController;
 
     public override void Interact(PlayerStateMachine stateMachine, InventoryToggleManager inventoryToggleManager, FirstPersonController playerController)
@@ -28,7 +30,7 @@ public class IgnitionKey1 : InteractableObject
             if (success)
             {
                 isIn = true;
-                // make key visible
+                key1MeshRenderer.enabled = true; // Enable the key mesh renderer when inserted
             }
         }
     }
@@ -62,15 +64,16 @@ public class IgnitionKey1 : InteractableObject
         if (isOn)
         {
             // Rotate the key back to the "off" position
-            key1.localRotation = Quaternion.Euler(0, 0, 0); // Adjust the angle as needed
-            stateMachine.SwitchState(new PilotingState(BoatController, inventoryToggleManager, playerController)); // Viktig linje. Den sender båtens kontroller til spillerens state machine som setter han i pilotmode til den båten. Konsulter drawio filen for visualisering
+            key1.localRotation = Quaternion.Euler(0, 90, 0); // Adjust the angle as needed
+            stateMachine.SwitchState(new MovementState(playerController)); // endre tilbake til vanlig movement state når player skrur nøkkelen av 
 
         }
         else
         {
             // Rotate the key to the "on" position
-            key1.localRotation = Quaternion.Euler(0, 90, 0); // Adjust the angle as needed
-            stateMachine.SwitchState(new MovementState(playerController)); // endre tilbake til vanlig movement state når player skrur nøkkelen av 
+            key1.localRotation = Quaternion.Euler(0, 0, 0); // Adjust the angle as needed
+            stateMachine.SwitchState(new PilotingState(BoatController, inventoryToggleManager, playerController)); // Viktig linje. Den sender båtens kontroller til spillerens state machine som setter han i pilotmode til den båten. Konsulter drawio filen for visualisering
+
         }
     }
 }
