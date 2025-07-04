@@ -2,31 +2,37 @@ using StarterAssets;
 
 public class MovementState : PlayerState
 {
-    public MovementState(FirstPersonController controller) : base(controller) { }
+    public MovementState(FirstPersonController controller)
+    {
+        pController = controller;
+    }
+
+    private FirstPersonController pController;
 
     public override void Update()
     {
-        controller.GroundedCheck();
-        controller.JumpAndGravity();
-        controller.Move();
-        controller.UpdateCursorLock();
+        pController.GroundedCheck();
+        pController.JumpAndGravity();
+        pController.Move();
+        pController.UpdateCursorLock();
     }
 
     public override void LateUpdate()
     {
-        if (!controller.InventoryToggleManager.GetIsOpen())
-            controller.CameraRotation();
+        if (!pController.InventoryToggleManager.GetIsOpen())
+            pController.CameraRotation();
     }
 
     public override void Enter()
     {
-        if (!controller.enabled)
-            controller.enabled = true;
+        if (!pController.enabled)
+            pController.enabled = true;
     }
 
     public override void Exit()
     {
-        controller.enabled = false;
+        // move player to pilot position
+        // disable controller
     }
 
 }

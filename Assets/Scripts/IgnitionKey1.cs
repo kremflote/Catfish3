@@ -1,4 +1,5 @@
 using System;
+using FishNet.Example.Scened;
 using FishNet.Object;
 using StarterAssets;
 using UnityEngine;
@@ -10,7 +11,16 @@ public class IgnitionKey1 : InteractableObject
 
     [SerializeField] private Transform key1;
 
-    public new void Interact()
+    public BoatController BoatController;
+
+    public override void Interact(PlayerStateMachine stateMachine, InventoryToggleManager inventoryToggleManager, FirstPersonController playerController)
+    {
+        Debug.Log("Interacting with Ignition Key 1");
+        HandleKeyInsertion();
+        ToggleIgnition(stateMachine, inventoryToggleManager, playerController);
+    }
+
+    private void HandleKeyInsertion()
     {
         if (!isIn)
         {
@@ -18,10 +28,9 @@ public class IgnitionKey1 : InteractableObject
             if (success)
             {
                 isIn = true;
-                // fix some animation for the gameobject
+                // make key visible
             }
         }
-        ToggleIgnition();
     }
 
     private bool TryInsertKey()
@@ -46,19 +55,22 @@ public class IgnitionKey1 : InteractableObject
         return isIn; // Return whether the key is inserted in the ignition
     }
 
-    public void ToggleIgnition()
+    public void ToggleIgnition(PlayerStateMachine stateMachine, InventoryToggleManager inventoryToggleManager, FirstPersonController playerController)
     {
         isOn = !isOn; // Toggle the state of the ignition key
 
         if (isOn)
         {
-            // Rotate the key to the "on" position
-            key1.localRotation = Quaternion.Euler(0, 90, 0); // Adjust the angle as needed
+            // Rotate the key back to the "off" position
+            key1.localRotation = Quaternion.Euler(0, 0, 0); // Adjust the angle as needed
+            stateMachine.SwitchState(new PilotingState(BoatController, inventoryToggleManager, playerController)); // Viktig linje. Den sender båtens kontroller til spillerens state machine som setter han i pilotmode til den båten. Konsulter drawio filen for visualisering
+
         }
         else
         {
-            // Rotate the key back to the "off" position
-            key1.localRotation = Quaternion.Euler(0, 0, 0); // Adjust the angle as needed
+            // Rotate the key to the "on" position
+            key1.localRotation = Quaternion.Euler(0, 90, 0); // Adjust the angle as needed
+            stateMachine.SwitchState(new MovementState(playerController)); // endre tilbake til vanlig movement state når player skrur nøkkelen av 
         }
     }
 }

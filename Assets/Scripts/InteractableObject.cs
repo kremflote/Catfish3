@@ -29,7 +29,12 @@ public class InteractableObject : NetworkBehaviour
         }
     }
 
-    internal void Interact()
+    public virtual void Interact(PlayerStateMachine playerState, InventoryToggleManager inventoryToggleManager, FirstPersonController playerController)
+    {
+        throw new NotImplementedException();
+    }
+
+    internal void PickUp()
     {
         throw new NotImplementedException();
     }

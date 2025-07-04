@@ -9,9 +9,6 @@ public class Boat : NetworkBehaviour, IDrivable
     public float moveSpeed = 5f;
     public float turnSpeed = 100f;
 
-    private float moveInput;
-    private float turnInput;
-
     public GameObject wheel;
     public GameObject throttle;
     public GameObject gear;
@@ -19,7 +16,6 @@ public class Boat : NetworkBehaviour, IDrivable
 
     public IgnitionKey1 ignitionKey;
     public bool IsKeyInserted { get; set; } // player går i "pilot mode" når han inserter key, så denne boolen styrer basically om båten blir styrt eller ikke
-    public FirstPersonController firstPersonController { get; set; }
     public BoatController boatController { get; set; }
 
     private void Start()
@@ -31,15 +27,6 @@ public class Boat : NetworkBehaviour, IDrivable
     {
         if (!IsOwner) return;
         if (ignitionKey.IsIn() == false) return;
-
-        InitializePilot();
-
-        MoveBoat(moveInput, turnInput);
-    }
-
-    private void InitializePilot()
-    {
-        // boatController.firstPersonController = ignitionKey.firstPersonController;
     }
 
     private void MoveBoat(float move, float turn)

@@ -1,6 +1,10 @@
 ﻿using FishNet.Object;
 using FishNet.Connection;
 using UnityEngine;
+using System;
+using UnityEngine.InputSystem.XR;
+
+
 #if ENABLE_INPUT_SYSTEM
 using UnityEngine.InputSystem;
 #endif
@@ -13,9 +17,10 @@ namespace StarterAssets
 #endif
 	public class FirstPersonController : NetworkBehaviour
 	{
-		// Dette er unity sin template for en klasse som fikser first-person movement- og kamera
+		// unity template som fikser first-person movement- og kamera
 		// jeg har lagt til slik at den også håndterer movement når player åpner inventory
-		// dette bør delegeres til en annen klasse senere
+		// dette bør delegeres til en annen klasse senere kanskje
+
 
 		
 		[Header("Player")]
@@ -67,14 +72,15 @@ namespace StarterAssets
         [Tooltip("Changes movement if inventory is open")]
         public InventoryToggleManager InventoryToggleManager;
 
+        [Header("Player")]
         // player
         private float _speed;
 		private float _rotationVelocity;
 		private float _verticalVelocity;
 		private float _terminalVelocity = 53.0f;
 
-		// timeout deltatime
-		private float _jumpTimeoutDelta;
+        // timeout deltatime
+        private float _jumpTimeoutDelta;
 		private float _fallTimeoutDelta;
 
 
@@ -82,8 +88,9 @@ namespace StarterAssets
         public PlayerInput _playerInput;
 #endif
         public CharacterController _controller;
-        public PlayerStateMachine StateMachine { get; private set; }
+		public PlayerStateMachine StateMachine;
         public StarterAssetsInputs _input {get; set; }
+
 		private GameObject _mainCamera;
 
 		private const float _threshold = 0.01f;
@@ -107,17 +114,12 @@ namespace StarterAssets
                 InitializeComponents();
                 _mainCamera.SetActive(true);
                 mouseEnabled = false;
-
-                StateMachine = new PlayerStateMachine();
                 StateMachine.Initialize(new MovementState(this));
-
-
 #if ENABLE_INPUT_SYSTEM
                 _playerInput = GetComponent<PlayerInput>();
 #else
 			Debug.LogError( "Starter Assets package is missing dependencies. Please use Tools/Starter Assets/Reinstall Dependencies to fix it");
 #endif
-
                 // reset our timeouts on start
                 _jumpTimeoutDelta = JumpTimeout;
                 _fallTimeoutDelta = FallTimeout;
@@ -135,20 +137,6 @@ namespace StarterAssets
             _controller = GetComponent<CharacterController>();
             _input = GetComponent<StarterAssetsInputs>();
         }
-
-        private void Update()
-        {
-            if (!IsOwner) return;
-            StateMachine.Update();
-        }
-
-        private void LateUpdate()
-        {
-            if (!IsOwner) return;
-            StateMachine.LateUpdate();
-        }
-
-
         public void UpdateCursorLock()
         {
             if (InventoryToggleManager.GetIsOpen() == true)
@@ -305,5 +293,10 @@ namespace StarterAssets
 			// when selected, draw a gizmo in the position of, and matching radius of, the grounded collider
 			Gizmos.DrawSphere(new Vector3(transform.position.x, transform.position.y - GroundedOffset, transform.position.z), GroundedRadius);
 		}
-	}
+
+        internal void PilotMode(object v)
+        {
+            // receives a reference from the boat which is the location player must move to in order to be piloting
+        }
+    }
 }

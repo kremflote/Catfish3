@@ -22,6 +22,16 @@ namespace StarterAssets
         public bool cursorLocked = true;
         public bool cursorInputForLook = true;
 
+        public SelectionManager selectionManager;
+
+        public void OnInteract(InputValue value)
+        {
+            if (!IsOwner) return;
+            if (selectionManager != null)
+                selectionManager.OnInteract(value);
+        }
+
+
 #if ENABLE_INPUT_SYSTEM
         public override void OnStartClient()
         {

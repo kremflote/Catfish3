@@ -13,6 +13,9 @@ public class SelectionManager : MonoBehaviour
     public bool onTarget;
     public GameObject selectedObject;
     public PlayerInput _playerInput;
+    public PlayerStateMachine StateMachine;
+    public InventoryToggleManager InventoryToggleManager;
+    public FirstPersonController FirstPersonController;
 
     private void Start()
     {
@@ -60,16 +63,15 @@ public class SelectionManager : MonoBehaviour
 
     public void OnInteract(InputValue value)
     {
-        if (value.isPressed && onTarget && selectedObject != null)
+        Debug.Log("OnInteract called with value: " + value.isPressed);
+
+        if (onTarget && selectedObject != null)
         {
             InteractableObject interactable = selectedObject.GetComponent<InteractableObject>();
-            if (interactable != null && interactable.pickupEnabled)
+            if (interactable != null)
             {
-                // Handle interaction logic here, e.g., picking up the item
-                // You can add more logic here to handle the interaction
-            }
-            {
-                interactable.Interact();
+                Debug.Log("Interacting with: " + interactable.name + FirstPersonController);
+                interactable.Interact(StateMachine, InventoryToggleManager, FirstPersonController);
             }
         }
     }

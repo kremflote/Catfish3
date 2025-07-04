@@ -1048,7 +1048,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 689564461}
-  - component: {fileID: 689564462}
   m_Layer: 0
   m_Name: Ignition
   m_TagString: Untagged
@@ -1074,26 +1073,6 @@ Transform:
   - {fileID: 1055111385}
   m_Father: {fileID: 5297386185588356010}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &689564462
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 689564460}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4a33998e0928cd146b24cd4455bbe154, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _componentIndexCache: 255
-  _addedNetworkObject: {fileID: 5198844830452083011}
-  _networkObjectCache: {fileID: 0}
-  playerInRange: 0
-  pickupEnabled: 0
-  isOn: 0
-  isIn: 0
-  key1: {fileID: 859324651}
 --- !u!1 &717351879
 GameObject:
   m_ObjectHideFlags: 0
@@ -1412,7 +1391,7 @@ GameObject:
   - component: {fileID: 859324654}
   - component: {fileID: 859324653}
   - component: {fileID: 859324652}
-  m_Layer: 0
+  m_Layer: 2
   m_Name: Key1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2281,8 +2260,8 @@ GameObject:
   - component: {fileID: 1689932901}
   - component: {fileID: 1689932900}
   - component: {fileID: 1689932899}
-  - component: {fileID: 1689932902}
   - component: {fileID: 1689932903}
+  - component: {fileID: 1689932904}
   m_Layer: 0
   m_Name: Ignition1plate
   m_TagString: Untagged
@@ -2382,23 +2361,6 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1689932897}
   m_Mesh: {fileID: 10206, guid: 0000000000000000e000000000000000, type: 0}
---- !u!114 &1689932902
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1689932897}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2d32a90793364554dae7adb7448d47f3, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _componentIndexCache: 255
-  _addedNetworkObject: {fileID: 5198844830452083011}
-  _networkObjectCache: {fileID: 0}
-  playerInRange: 0
-  pickupEnabled: 0
 --- !u!65 &1689932903
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -2420,6 +2382,27 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 40.427208, y: 188.60414, z: 43.6028}
   m_Center: {x: -3.463459, y: 62.064835, z: -12.128559}
+--- !u!114 &1689932904
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1689932897}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4a33998e0928cd146b24cd4455bbe154, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _componentIndexCache: 255
+  _addedNetworkObject: {fileID: 5198844830452083011}
+  _networkObjectCache: {fileID: 0}
+  playerInRange: 0
+  pickupEnabled: 0
+  isOn: 0
+  isIn: 0
+  key1: {fileID: 859324651}
+  BoatController: {fileID: 6940698311800813158}
 --- !u!1 &1697155628
 GameObject:
   m_ObjectHideFlags: 0
@@ -4868,7 +4851,7 @@ Transform:
   m_GameObject: {fileID: 6940698311800813157}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 103.41704, y: 0.5246662, z: 99.38593}
+  m_LocalPosition: {x: 103.41704, y: 2.21, z: 39.3}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -5486,6 +5469,7 @@ GameObject:
   - component: {fileID: 5198844830452083012}
   - component: {fileID: 5198844830452083011}
   - component: {fileID: 5198844830452083013}
+  - component: {fileID: 6940698311800813158}
   m_Layer: 0
   m_Name: Boat
   m_TagString: Untagged
@@ -5493,6 +5477,22 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
+--- !u!114 &6940698311800813158
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6940698311800813157}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8d1fd17e9ca1ac64e8d7f454724534c6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _componentIndexCache: 255
+  _addedNetworkObject: {fileID: 5198844830452083011}
+  _networkObjectCache: {fileID: 0}
+  InventoryToggleManager: {fileID: 0}
 --- !u!1 &7063438357442858137
 GameObject:
   m_ObjectHideFlags: 0

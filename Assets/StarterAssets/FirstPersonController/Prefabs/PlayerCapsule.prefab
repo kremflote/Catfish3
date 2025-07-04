@@ -239,6 +239,7 @@ MonoBehaviour:
   InventoryToggleManager: {fileID: 0}
   _playerInput: {fileID: 0}
   _controller: {fileID: 0}
+  StateMachine: {fileID: 0}
 --- !u!114 &1978471637655604388
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -278,6 +279,7 @@ MonoBehaviour:
   analogMovement: 0
   cursorLocked: 1
   cursorInputForLook: 1
+  selectionManager: {fileID: 0}
 --- !u!114 &8616685848737228376
 MonoBehaviour:
   m_ObjectHideFlags: 0
