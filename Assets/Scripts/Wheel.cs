@@ -22,10 +22,16 @@ public class Wheel : NetworkBehaviour
         steeringWheel.localRotation = Quaternion.Euler(0f, _currentAngle, 0f);
     }
 
-    private void SetAngle(float angle)
+    public void SetAngle(float angle)
     {
         _currentAngle = angle;
         ApplyVisualRotation(angle);
+    }
+
+    public void AddAngle(float angle)
+    {
+        _currentAngle += angle;
+        ApplyVisualRotation(_currentAngle);
     }
 
     public float GetAngle()

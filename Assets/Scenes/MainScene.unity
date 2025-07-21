@@ -2669,7 +2669,7 @@ MonoBehaviour:
   _addedNetworkObject: {fileID: 5198844830452083011}
   _networkObjectCache: {fileID: 0}
   leverMoveSpeed: 1
-  currentGear: 0
+  currentGear: 1
   lastGear: 0
 --- !u!1 &1758793311
 GameObject:
@@ -4692,8 +4692,10 @@ MonoBehaviour:
   _componentIndexCache: 255
   _addedNetworkObject: {fileID: 5198844830452083011}
   _networkObjectCache: {fileID: 0}
-  moveSpeed: 5
-  turnSpeed: 100
+  MinSpeed: 1
+  MaxSpeed: 40
+  RotationSpeed: 1
+  SpeedChangeRate: 10
   wheel: {fileID: 8354887162859527457}
   throttle: {fileID: 364835396}
   gear: {fileID: 1740840516}
@@ -5352,7 +5354,8 @@ MonoBehaviour:
   _componentIndexCache: 255
   _addedNetworkObject: {fileID: 5198844830452083011}
   _networkObjectCache: {fileID: 0}
-  InventoryToggleManager: {fileID: 0}
+  inventoryToggleManager: {fileID: 0}
+  boat: {fileID: 5198844830452083013}
 --- !u!1 &7063438357442858137
 GameObject:
   m_ObjectHideFlags: 0

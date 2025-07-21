@@ -29,6 +29,7 @@ public class InteractableObject : NetworkBehaviour
         }
     }
 
+    // må overrides i hver child av denne klassen
     public virtual void Interact(PlayerStateMachine playerState, InventoryToggleManager inventoryToggleManager, FirstPersonController playerController)
     {
         throw new NotImplementedException();

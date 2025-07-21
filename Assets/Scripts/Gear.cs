@@ -3,25 +3,34 @@ using UnityEngine;
 
 public class Gear : NetworkBehaviour
 {
-    
-    public float leverMoveSpeed = 1f;            // modifyer for the lever movement animation
+    public float leverMoveSpeed = 5f; // Speed at which the lever moves
     private Vector3 basePosition;
+    private Vector3 targetPosition;
     public GearState currentGear;
-    public GearState lastGear; // for testing
+    public GearState lastGear;
 
     private void Start()
     {
-        basePosition = transform.localPosition; // Store the lever's rest position
+        basePosition = transform.localPosition;
         currentGear = GearState.Neutral;
+        lastGear = currentGear;
+        targetPosition = basePosition;
     }
 
-    void Update()
+    private void Update()
     {
+        // Smoothly move the lever toward the target position
+        transform.localPosition = Vector3.MoveTowards(
+            transform.localPosition,
+            targetPosition,
+            leverMoveSpeed * Time.deltaTime
+        );
+
+        // If gear has changed, update the target position
         if (currentGear != lastGear)
         {
-            // Smoothly move the lever toward the desired position
-            ChangeGear(currentGear);
-            lastGear = currentGear; // Update last gear to current
+            UpdateTargetPosition(currentGear);
+            lastGear = currentGear;
         }
     }
 
@@ -35,16 +44,20 @@ public class Gear : NetworkBehaviour
     public void ChangeGear(GearState state)
     {
         currentGear = state;
+    }
+
+    private void UpdateTargetPosition(GearState state)
+    {
         switch (state)
         {
             case GearState.Drive:
-                transform.localPosition = basePosition + (transform.forward * 0.1f); // Move lever forward for Drive
+                targetPosition = basePosition + (transform.forward * 0.1f);
                 break;
             case GearState.Reverse:
-                transform.localPosition = basePosition + (transform.forward * -0.1f); // Move lever backward for Reverse
+                targetPosition = basePosition + (transform.forward * -0.1f);
                 break;
             case GearState.Neutral:
-                transform.localPosition = basePosition; // Reset to neutral position
+                targetPosition = basePosition;
                 break;
         }
     }

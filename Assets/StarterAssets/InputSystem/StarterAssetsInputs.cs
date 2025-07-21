@@ -9,6 +9,10 @@ namespace StarterAssets
 {   
     public class StarterAssetsInputs : NetworkBehaviour
     {
+        // Dette scriptet leser input fra unity sitt input system
+        // Deretter setter den current input som egne instance variabler, effectively exposing them
+        // Deretter kan andre scripts accessere user input ved å ha en instance av dette scriptet
+
         [Header("Character Input Values")]
         public Vector2 move;
         public Vector2 look;

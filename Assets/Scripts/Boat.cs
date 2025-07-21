@@ -5,9 +5,15 @@ using System;
 
 public class Boat : NetworkBehaviour, IDrivable
 {
-    [Header("Movement Settings")]
-    public float moveSpeed = 5f;
-    public float turnSpeed = 100f;
+    [Header("Boat")]
+    [Tooltip("Move speed minimum")]
+    public float MinSpeed = 1.0f;
+    [Tooltip("Move speed maximum")]
+    public float MaxSpeed = 40.0f;
+    [Tooltip("Rotation speed of the boat")]
+    public float RotationSpeed = 1.0f;
+    [Tooltip("Acceleration and deceleration")]
+    public float SpeedChangeRate = 10.0f;
 
     public GameObject wheel;
     public GameObject throttle;
@@ -15,7 +21,7 @@ public class Boat : NetworkBehaviour, IDrivable
     public GameObject ignition1;
 
     public IgnitionKey1 ignitionKey;
-    public bool IsKeyInserted { get; set; } // player går i "pilot mode" når han inserter key, så denne boolen styrer basically om båten blir styrt eller ikke
+    public bool IsKeyInserted { get; set; }
     public BoatController boatController { get; set; }
 
     private void Start()
@@ -23,20 +29,11 @@ public class Boat : NetworkBehaviour, IDrivable
         ignitionKey = ignition1.GetComponent<IgnitionKey1>();
         IsKeyInserted = false;
     }
-    void Update()
-    {
-        if (!IsOwner) return;
-        if (ignitionKey.IsIn() == false) return;
-    }
 
     private void MoveBoat(float move, float turn)
     {
-        // Time.fixedDeltaTime used for consistent movement on server
-        float moveAmount = move * moveSpeed * Time.fixedDeltaTime;
-        float turnAmount = turn * turnSpeed * Time.fixedDeltaTime;
 
-        transform.Translate(Vector3.forward * moveAmount);
-        transform.Rotate(Vector3.up * turnAmount);
+
     }
     public void InsertKey()
     {

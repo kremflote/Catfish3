@@ -6,32 +6,45 @@ using UnityEngine;
 
 public class BoatController : NetworkBehaviour
 {
-    public PlayerStateMachine StateMachine { get; private set; }
+    // This class is responsible for controlling the boat's state and interactions with the player.
+    // Not playermovement, that is controlled by FirstPersonController.
+
+    public PlayerStateMachine stateMachine { get; private set; }
     public StarterAssetsInputs _input { get; set; }
-    public InventoryToggleManager InventoryToggleManager;
+    public InventoryToggleManager inventoryToggleManager;
+    public Boat boat;
+    private Wheel wheelScript;
 
 
-    public void Initialize(InventoryToggleManager InventoryToggleManager, PlayerStateMachine StateMachine)
+    public void Initialize(InventoryToggleManager inventoryToggleManager, PlayerStateMachine stateMachine)
     {
-        this.InventoryToggleManager = InventoryToggleManager;
-        this.StateMachine = StateMachine;
+        this.inventoryToggleManager = inventoryToggleManager;
+        this.stateMachine = stateMachine;
+        
     }
 
-    private void Update()
+    private void Start()
     {
-        if (!IsOwner) return;
-        StateMachine.Update();
-    }
-
-    private void LateUpdate()
-    {
-        if (!IsOwner) return;
-        StateMachine.LateUpdate();
+        wheelScript = boat.wheel.GetComponent<Wheel>();
     }
 
     public void Steer()
     {
+        if (boat == null || wheelScript == null || _input == null) {
+            Debug.LogError("BoatController is not properly initialized. Boat or wheel or input is null.", this);
+            return;
+        }
+        
+        Debug.Log($"Steer input: {_input.move.x}", this);
+        
 
+        float steerInput = _input.move.x;
+
+        wheelScript.AddAngle(steerInput);
+        /* Optionally, smooth the rotation (optional, based on need)
+        float smoothSpeed = 5f;
+        float currentAngle = wheelScript.GetAngle();
+        float smoothedAngle = Mathf.Lerp(currentAngle, targetAngle, Time.deltaTime * smoothSpeed); */
     }
 
     internal object GetPilotPosition()
