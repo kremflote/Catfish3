@@ -3,6 +3,8 @@ using FishNet.Connection;
 using UnityEngine;
 using System;
 using UnityEngine.InputSystem.XR;
+using FishNet.Example.ColliderRollbacks;
+
 
 
 #if ENABLE_INPUT_SYSTEM
@@ -125,7 +127,6 @@ namespace StarterAssets
                 _fallTimeoutDelta = FallTimeout;
             }
         }
-
         private void InitializeComponents()
         {
             Transform parent = transform.parent;
@@ -150,14 +151,12 @@ namespace StarterAssets
                 Cursor.lockState = CursorLockMode.Locked;
             }
         }
-
         public void GroundedCheck()
 		{
 			// set sphere position, with offset
 			Vector3 spherePosition = new Vector3(transform.position.x, transform.position.y - GroundedOffset, transform.position.z);
 			Grounded = Physics.CheckSphere(spherePosition, GroundedRadius, GroundLayers, QueryTriggerInteraction.Ignore);
 		}
-
         public void CameraRotation()
 		{
 			// if there is an input
@@ -179,7 +178,6 @@ namespace StarterAssets
 				transform.Rotate(Vector3.up * _rotationVelocity);
 			}
 		}
-
         public void Move()
 		{
 			// set target speed based on move speed, sprint speed and if sprint is pressed
@@ -282,7 +280,53 @@ namespace StarterAssets
 			return Mathf.Clamp(lfAngle, lfMin, lfMax);
 		}
 
-		private void OnDrawGizmosSelected()
+
+        private Vector2 previousMousePosition;
+        private int frameCounter = 0;
+        private int frameDelay = 5;
+
+        public void HandleMouse()
+        {
+			Camera playerCamera = _mainCamera.GetComponent<Camera>();
+
+            if (!IsOwner || playerCamera == null || Mouse.current == null) return;
+
+            Ray ray = playerCamera.ScreenPointToRay(Mouse.current.position.ReadValue());
+            RaycastHit hit;
+            if (Physics.Raycast(ray, out hit))
+            {
+                InteractableObject interactable = hit.transform.GetComponent<InteractableObject>();
+
+                if (interactable)
+                {
+                    frameCounter++;
+                    if (frameCounter >= frameDelay)
+                    {
+                        Vector2 currentMousePosition = Mouse.current.position.ReadValue();
+                        float mouseDeltaY = currentMousePosition.y - previousMousePosition.y;
+
+                        if (mouseDeltaY > 10f)
+                        {
+							// interactable.Interact();
+                        }
+                        else if (mouseDeltaY < -10f)
+                        {
+                 
+                        }
+                        else
+                        {
+                        
+                        }
+
+                        previousMousePosition = currentMousePosition;
+                        frameCounter = 0;
+                    }
+                }
+            }
+        }
+
+
+        private void OnDrawGizmosSelected()
 		{
 			Color transparentGreen = new Color(0.0f, 1.0f, 0.0f, 0.35f);
 			Color transparentRed = new Color(1.0f, 0.0f, 0.0f, 0.35f);
@@ -293,10 +337,5 @@ namespace StarterAssets
 			// when selected, draw a gizmo in the position of, and matching radius of, the grounded collider
 			Gizmos.DrawSphere(new Vector3(transform.position.x, transform.position.y - GroundedOffset, transform.position.z), GroundedRadius);
 		}
-
-        internal void PilotMode(object v)
-        {
-            // receives a reference from the boat which is the location player must move to in order to be piloting
-        }
     }
 }

@@ -2668,8 +2668,10 @@ MonoBehaviour:
   _componentIndexCache: 255
   _addedNetworkObject: {fileID: 5198844830452083011}
   _networkObjectCache: {fileID: 0}
+  playerInRange: 0
+  pickupEnabled: 0
   leverMoveSpeed: 1
-  currentGear: 1
+  currentGear: 2
   lastGear: 0
 --- !u!1 &1758793311
 GameObject:

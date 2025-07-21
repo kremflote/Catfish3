@@ -507,6 +507,7 @@ MonoBehaviour:
   StateMachine: {fileID: 1493561170705348856}
   InventoryToggleManager: {fileID: 3689181912508616400}
   FirstPersonController: {fileID: 3188586399734228761}
+  camera: {fileID: 6570115208068853297}
 --- !u!114 &5366384404833170438
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -562,6 +563,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ed44348c22304ba47b918fd6d477648c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  currentStateName: 
 --- !u!1 &4501938634620769567
 GameObject:
   m_ObjectHideFlags: 0

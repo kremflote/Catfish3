@@ -11,8 +11,6 @@ public class InteractableObject : NetworkBehaviour
     public bool playerInRange;
     public bool pickupEnabled;
 
-    public FirstPersonController firstPersonController { get; set; }
-
     private void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag("Player"))

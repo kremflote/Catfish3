@@ -3,6 +3,7 @@ using System.Globalization;
 using FishNet.Object;
 using StarterAssets;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class BoatController : NetworkBehaviour
 {
@@ -34,21 +35,15 @@ public class BoatController : NetworkBehaviour
             Debug.LogError("BoatController is not properly initialized. Boat or wheel or input is null.", this);
             return;
         }
-        
-        Debug.Log($"Steer input: {_input.move.x}", this);
-        
-
         float steerInput = _input.move.x;
 
         wheelScript.AddAngle(steerInput);
-        /* Optionally, smooth the rotation (optional, based on need)
-        float smoothSpeed = 5f;
-        float currentAngle = wheelScript.GetAngle();
-        float smoothedAngle = Mathf.Lerp(currentAngle, targetAngle, Time.deltaTime * smoothSpeed); */
     }
 
     internal object GetPilotPosition()
     {
         throw new NotImplementedException();
     }
+
+    
 }

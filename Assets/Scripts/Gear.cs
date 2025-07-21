@@ -1,7 +1,7 @@
 using FishNet.Object;
 using UnityEngine;
 
-public class Gear : NetworkBehaviour
+public class Gear : InteractableObject
 {
     public float leverMoveSpeed = 5f; // Speed at which the lever moves
     private Vector3 basePosition;

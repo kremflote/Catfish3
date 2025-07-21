@@ -6,9 +6,11 @@ using UnityEngine.UI;
 using TMPro;
 using StarterAssets;
 using UnityEngine.InputSystem;
+using System.Globalization;
+using FishNet.Object;
 
 
-public class SelectionManager : MonoBehaviour
+public class SelectionManager : NetworkBehaviour
 {
     public bool onTarget;
     public GameObject selectedObject;
@@ -16,6 +18,7 @@ public class SelectionManager : MonoBehaviour
     public PlayerStateMachine StateMachine;
     public InventoryToggleManager InventoryToggleManager;
     public FirstPersonController FirstPersonController;
+    public Camera camera;
 
     private void Start()
     {
@@ -41,7 +44,8 @@ public class SelectionManager : MonoBehaviour
 
     void Update()
     {
-        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+        if (!IsOwner) return;
+        Ray ray = camera.ScreenPointToRay(Mouse.current.position.ReadValue());
         RaycastHit hit;
         if (Physics.Raycast(ray, out hit))
         {

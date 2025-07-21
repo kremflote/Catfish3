@@ -83,7 +83,15 @@ public class InventoryController : MonoBehaviour
         }
     }
 
-
+    private void HandleLeftMouseClick()
+    {
+        if (IsPointerOffGrid())
+        {
+            Debug.Log("Pointer is not on the grid.");
+            return;
+        }
+        InteractWithItem();
+    }
     private void Awake()
     {
         InitializeComponents();
@@ -97,7 +105,6 @@ public class InventoryController : MonoBehaviour
             HandleHighlight();
         }
     }
-
     public bool SelectedItemIsNull()
     {
         return selectedItem == null;
@@ -260,7 +267,6 @@ public class InventoryController : MonoBehaviour
             Debug.LogError("GridInteract component is missing on GreyGrid.");
         }
     }
-
     private void InsertAllUIElements()
     {
         foreach (Transform screen in playerScreens)
@@ -368,15 +374,7 @@ public class InventoryController : MonoBehaviour
                 }
         }
     }
-    private void HandleLeftMouseClick()
-    {
-        if (IsPointerOffGrid())
-        {
-            Debug.Log("Pointer is not on the grid.");
-            return;
-        }
-        InteractWithItem();
-    }
+    
     public void SetItemGrid(ItemGrid itemGrid)
     {
         this.selectedItemGrid = itemGrid;
