@@ -18,7 +18,7 @@ public class SelectionManager : NetworkBehaviour
     public PlayerStateMachine StateMachine;
     public InventoryToggleManager InventoryToggleManager;
     public FirstPersonController FirstPersonController;
-    public Camera camera;
+    public Camera mainCamera;
 
     private void Start()
     {
@@ -45,7 +45,7 @@ public class SelectionManager : NetworkBehaviour
     void Update()
     {
         if (!IsOwner) return;
-        Ray ray = camera.ScreenPointToRay(Mouse.current.position.ReadValue());
+        Ray ray = mainCamera.ScreenPointToRay(Mouse.current.position.ReadValue());
         RaycastHit hit;
         if (Physics.Raycast(ray, out hit))
         {

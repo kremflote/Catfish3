@@ -23,7 +23,6 @@ namespace StarterAssets
 		// jeg har lagt til slik at den også håndterer movement når player åpner inventory
 		// dette bør delegeres til en annen klasse senere kanskje
 
-
 		
 		[Header("Player")]
 		[Tooltip("Move speed of the character in m/s")]
@@ -92,31 +91,24 @@ namespace StarterAssets
         public CharacterController _controller;
 		public PlayerStateMachine StateMachine;
         public StarterAssetsInputs _input {get; set; }
-
 		private GameObject _mainCamera;
-
 		private const float _threshold = 0.01f;
 
-		private bool IsCurrentDeviceMouse
-		{
-			get
-			{
-				#if ENABLE_INPUT_SYSTEM
-				return _playerInput.currentControlScheme == "KeyboardMouse";
-				#else
-				return false;
-				#endif
-			}
-		}
+		
 
 		public override void OnStartClient()
 		{
-			if (base.IsOwner)
+            base.OnStartClient();
+
+            StateMachine.Initialize(new MovementState(this));
+            _controller = GetComponent<CharacterController>();
+
+            if (base.IsOwner)
             {
                 InitializeComponents();
                 _mainCamera.SetActive(true);
                 mouseEnabled = false;
-                StateMachine.Initialize(new MovementState(this));
+                
 #if ENABLE_INPUT_SYSTEM
                 _playerInput = GetComponent<PlayerInput>();
 #else
@@ -135,7 +127,6 @@ namespace StarterAssets
             Transform inventoryToggleManagerGO = managers.Find("InventoryToggleManager");
             InventoryToggleManager = inventoryToggleManagerGO.GetComponent<InventoryToggleManager>();
             _mainCamera = mainCamera.gameObject;
-            _controller = GetComponent<CharacterController>();
             _input = GetComponent<StarterAssetsInputs>();
         }
         public void UpdateCursorLock()
@@ -224,7 +215,6 @@ namespace StarterAssets
 			// move the player
 			_controller.Move(inputDirection.normalized * (_speed * Time.deltaTime) + new Vector3(0.0f, _verticalVelocity, 0.0f) * Time.deltaTime);
 		}
-
         public void JumpAndGravity()
 		{
 			if (Grounded)
@@ -272,7 +262,6 @@ namespace StarterAssets
 				_verticalVelocity += Gravity * Time.deltaTime;
 			}
 		}
-
 		private static float ClampAngle(float lfAngle, float lfMin, float lfMax)
 		{
 			if (lfAngle < -360f) lfAngle += 360f;
@@ -280,11 +269,11 @@ namespace StarterAssets
 			return Mathf.Clamp(lfAngle, lfMin, lfMax);
 		}
 
+		// HandleMouse brukes kun i pilot mode
 
         private Vector2 previousMousePosition;
         private int frameCounter = 0;
         private int frameDelay = 5;
-
         public void HandleMouse()
         {
 			Camera playerCamera = _mainCamera.GetComponent<Camera>();
@@ -325,7 +314,6 @@ namespace StarterAssets
             }
         }
 
-
         private void OnDrawGizmosSelected()
 		{
 			Color transparentGreen = new Color(0.0f, 1.0f, 0.0f, 0.35f);
@@ -337,5 +325,17 @@ namespace StarterAssets
 			// when selected, draw a gizmo in the position of, and matching radius of, the grounded collider
 			Gizmos.DrawSphere(new Vector3(transform.position.x, transform.position.y - GroundedOffset, transform.position.z), GroundedRadius);
 		}
+
+        private bool IsCurrentDeviceMouse
+        {
+            get
+            {
+#if ENABLE_INPUT_SYSTEM
+                return _playerInput.currentControlScheme == "KeyboardMouse";
+#else
+				return false;
+#endif
+            }
+        }
     }
 }

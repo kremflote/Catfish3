@@ -55,17 +55,14 @@ public class InventoryController : MonoBehaviour
             CreateRandomItem();
         }
     }
-
     private void HandleInsertAll()
     {
         InsertAllUIElements();
     }
-
     private void HandleInsertRandom()
     {
         InsertRandomItem();
     }
-
     private void HandleMouseClick(string button)
     {
         if (selectedItemGrid == null || IsPointerOffGrid()) return;
@@ -82,7 +79,6 @@ public class InventoryController : MonoBehaviour
             }
         }
     }
-
     private void HandleLeftMouseClick()
     {
         if (IsPointerOffGrid())

@@ -21,6 +21,7 @@ public class PlayerComponentsEnabler : NetworkBehaviour
 
     public override void OnStartClient()
     {
+
         base.OnStartClient();
 
         if (!IsOwner)
@@ -108,6 +109,10 @@ public class PlayerComponentsEnabler : NetworkBehaviour
         SelectionManager selectionManager = GetComponent<SelectionManager>();
         if (selectionManager != null)
             selectionManager.enabled = true;
+
+        PlayerStateMachine stateMachine = GetComponent<PlayerStateMachine>();
+        if (stateMachine != null)
+            stateMachine.enabled = true;
     }
 
     private void EnableCanvasComponents()

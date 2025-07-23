@@ -3471,7 +3471,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 211a9f6ec51ddc14f908f5acc0cd0423, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _playerPrefab: {fileID: 4206797736899553925, guid: f97e991fb65ca044abd28bd35f82d28f, type: 3}
+  _playerPrefab: {fileID: 3598093824962235337, guid: f97e991fb65ca044abd28bd35f82d28f, type: 3}
   _addToDefaultScene: 1
   Spawns:
   - {fileID: 5749530143211754293}
@@ -4630,7 +4630,7 @@ MonoBehaviour:
   <PrefabId>k__BackingField: 65535
   <SpawnableCollectionId>k__BackingField: 0
   <AssetPathHash>k__BackingField: 0
-  <SceneId>k__BackingField: 2683173807
+  <SceneId>k__BackingField: 3169839103
   SerializedTransformProperties:
     Position: {x: 0, y: 0, z: 0}
     Rotation: {x: 0, y: 0, z: 0, w: 0}
