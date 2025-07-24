@@ -3,6 +3,8 @@ using UnityEngine;
 
 public class Gear : InteractableObject
 {
+
+
     public float leverMoveSpeed = 5f; // Speed at which the lever moves
     private Vector3 basePosition;
     private Vector3 targetPosition;
@@ -45,6 +47,40 @@ public class Gear : InteractableObject
     {
         currentGear = state;
     }
+
+    public void UpGear()
+    {
+        if (currentGear == GearState.Neutral)
+        {
+            ChangeGear(GearState.Drive);
+        }
+        else if (currentGear == GearState.Drive)
+        {
+            // do nothing
+        }
+        else if (currentGear == GearState.Reverse)
+        {
+            ChangeGear(GearState.Neutral);
+        }
+    }
+
+    public void DownGear()
+    {
+        if (currentGear == GearState.Neutral)
+        {
+            ChangeGear(GearState.Reverse);
+        }
+        else if (currentGear == GearState.Drive)
+        {
+            ChangeGear(GearState.Neutral);
+        }
+        else if (currentGear == GearState.Reverse)
+        {
+            // do nothing
+        }
+    }
+
+
 
     private void UpdateTargetPosition(GearState state)
     {

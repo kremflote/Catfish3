@@ -22,24 +22,25 @@ namespace StarterAssets
         [Header("Movement Settings")]
         public bool analogMovement;
 
+        [Header("Click Input")]
+        public bool clickHeld;
+
+
         [Header("Mouse Cursor Settings")]
         public bool cursorLocked = true;
         public bool cursorInputForLook = true;
 
         public SelectionManager selectionManager;
 
-        public void OnInteract(InputValue value)
-        {
-            if (!IsOwner) return;
-            if (selectionManager != null)
-                selectionManager.OnInteract(value);
-        }
+
 
 
 #if ENABLE_INPUT_SYSTEM
         public override void OnStartClient()
         {
             base.OnStartClient();
+
+            clickHeld = false;
 
             if (!IsOwner)
                 enabled = false;
@@ -49,6 +50,21 @@ namespace StarterAssets
             if (!IsOwner) return;
             MoveInput(value.Get<Vector2>());
         }
+
+        public void OnInteract(InputValue value)
+        {
+            if (!IsOwner) return;
+            if (selectionManager != null)
+                selectionManager.OnInteract(value);
+        }
+
+        public void OnClick(InputValue value)
+        {
+            if (!IsOwner) return;
+
+            clickHeld = value.isPressed;
+        }
+
 
         public void OnLook(InputValue value)
         {

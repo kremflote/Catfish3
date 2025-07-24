@@ -15,6 +15,7 @@ public class SelectionManager : NetworkBehaviour
     public bool onTarget;
     public GameObject selectedObject;
     public PlayerInput _playerInput;
+    public StarterAssetsInputs _input;
     public PlayerStateMachine StateMachine;
     public InventoryToggleManager InventoryToggleManager;
     public FirstPersonController FirstPersonController;
@@ -45,6 +46,10 @@ public class SelectionManager : NetworkBehaviour
     void Update()
     {
         if (!IsOwner) return;
+
+        Click();
+
+
         Ray ray = mainCamera.ScreenPointToRay(Mouse.current.position.ReadValue());
         RaycastHit hit;
         if (Physics.Raycast(ray, out hit))
@@ -76,6 +81,63 @@ public class SelectionManager : NetworkBehaviour
             {
                 Debug.Log("Interacting with: " + interactable.name + FirstPersonController);
                 interactable.Interact(StateMachine, InventoryToggleManager, FirstPersonController);
+            }
+        }
+    }
+
+    // HandleMouse brukes kun i pilot mode
+
+    private Vector2 previousMousePosition;
+    private Vector2 currentMousePosition;
+    private int frameCounter = 0;
+    private int frameDelay = 5;
+    public void Click()
+    {
+        if (_input.clickHeld)
+        {
+
+            Debug.Log("Click held: " + _input.clickHeld);
+        }
+
+
+        if (onTarget && selectedObject != null)
+        {
+            InteractableObject interactable = selectedObject.GetComponent<InteractableObject>();
+            currentMousePosition = Vector2.zero;
+
+            if (interactable is Gear gear)
+            {
+                Debug.Log("Gear clicked: " + gear.name);
+
+                if (_input.clickHeld)
+                {
+                    if (currentMousePosition == Vector2.zero)
+                    {
+                        currentMousePosition = Mouse.current.position.ReadValue();
+                        previousMousePosition = currentMousePosition;
+                    }
+                    if (frameCounter >= frameDelay)
+                    {
+                        currentMousePosition = Mouse.current.position.ReadValue();
+                        float mouseDeltaY = currentMousePosition.y - previousMousePosition.y;
+
+                        // mouse moved down
+                        if (mouseDeltaY < 0)
+                        {
+                            gear.DownGear();
+                        }
+
+                        // mouse moved up
+                        if (mouseDeltaY > 0)
+                        {
+                            gear.UpGear();
+                        }
+                        previousMousePosition = Vector2.zero;
+                        frameCounter = 0;
+                        currentMousePosition = Vector2.zero;
+                    }
+                    frameCounter++;
+                }
             }
         }
     }

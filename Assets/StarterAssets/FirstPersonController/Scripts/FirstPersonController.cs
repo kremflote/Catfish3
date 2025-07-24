@@ -66,6 +66,8 @@ namespace StarterAssets
 
 		private bool mouseEnabled;
 
+
+
         // cinemachine
         private float _cinemachineTargetPitch;
 
@@ -92,7 +94,8 @@ namespace StarterAssets
 		public PlayerStateMachine StateMachine;
         public StarterAssetsInputs _input {get; set; }
 		private GameObject _mainCamera;
-		private const float _threshold = 0.01f;
+        private Camera playerCamera; // scriptet bruker cinemachine for vanlig camera håndtering, denne variablen trengs for pilotmode
+        private const float _threshold = 0.01f;
 
 		
 
@@ -107,6 +110,7 @@ namespace StarterAssets
             {
                 InitializeComponents();
                 _mainCamera.SetActive(true);
+				playerCamera = _mainCamera.GetComponent<Camera>();
                 mouseEnabled = false;
                 
 #if ENABLE_INPUT_SYSTEM
@@ -272,47 +276,59 @@ namespace StarterAssets
 		// HandleMouse brukes kun i pilot mode
 
         private Vector2 previousMousePosition;
+        private Vector2 currentMousePosition;
         private int frameCounter = 0;
         private int frameDelay = 5;
-        public void HandleMouse()
-        {
-			Camera playerCamera = _mainCamera.GetComponent<Camera>();
 
+        /* public void HandleMouse()
+        {
             if (!IsOwner || playerCamera == null || Mouse.current == null) return;
 
-            Ray ray = playerCamera.ScreenPointToRay(Mouse.current.position.ReadValue());
+            if (_input.clickHeld)
+            {
+                Debug.Log("Click is being held");
+            }
+   
+
+			Ray ray = playerCamera.ScreenPointToRay(Mouse.current.position.ReadValue());
             RaycastHit hit;
             if (Physics.Raycast(ray, out hit))
             {
-                InteractableObject interactable = hit.transform.GetComponent<InteractableObject>();
+                // introduce polymorphism to interact with different types of controls.
+				InteractableObject interactable = hit.transform.GetComponent<InteractableObject>();
+                
 
-                if (interactable)
+                if (interactable is Gear gear)
                 {
                     frameCounter++;
+                    currentMousePosition = Vector2.zero;
+					if (currentMousePosition == Vector2.zero) {
+						currentMousePosition = Mouse.current.position.ReadValue();
+                        previousMousePosition = currentMousePosition;
+                    }
+                        
                     if (frameCounter >= frameDelay)
                     {
-                        Vector2 currentMousePosition = Mouse.current.position.ReadValue();
+                        currentMousePosition = Mouse.current.position.ReadValue();
                         float mouseDeltaY = currentMousePosition.y - previousMousePosition.y;
 
-                        if (mouseDeltaY > 10f)
-                        {
-							// interactable.Interact();
-                        }
-                        else if (mouseDeltaY < -10f)
-                        {
-                 
-                        }
-                        else
-                        {
-                        
-                        }
+						// mouse moved down
+						if (mouseDeltaY < 0) {
+							gear.DownGear();
+						}
 
-                        previousMousePosition = currentMousePosition;
+                        // mouse moved up
+                        if (mouseDeltaY > 0)
+                        {
+                            gear.UpGear();
+                        }
+                        previousMousePosition = Vector2.zero;
                         frameCounter = 0;
+                        currentMousePosition = Vector2.zero;
                     }
                 }
             }
-        }
+        } */
 
         private void OnDrawGizmosSelected()
 		{

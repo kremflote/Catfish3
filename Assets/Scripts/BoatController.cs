@@ -1,9 +1,10 @@
-using System;
+﻿using System;
 using System.Globalization;
 using FishNet.Object;
 using StarterAssets;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.Windows;
 
 public class BoatController : NetworkBehaviour
 {
@@ -28,6 +29,8 @@ public class BoatController : NetworkBehaviour
     {
         wheelScript = boat.wheel.GetComponent<Wheel>();
     }
+
+    
 
     public void Steer()
     {

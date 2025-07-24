@@ -370,6 +370,7 @@ MonoBehaviour:
   jump: 0
   sprint: 0
   analogMovement: 0
+  clickHeld: 0
   cursorLocked: 1
   cursorInputForLook: 1
   selectionManager: {fileID: 1337532440302967053}
@@ -496,6 +497,7 @@ MonoBehaviour:
   onTarget: 0
   selectedObject: {fileID: 0}
   _playerInput: {fileID: 1836650178498124470}
+  _input: {fileID: 8750163120122580453}
   StateMachine: {fileID: 1493561170705348856}
   InventoryToggleManager: {fileID: 3689181912508616400}
   FirstPersonController: {fileID: 3188586399734228761}
