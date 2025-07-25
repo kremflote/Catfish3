@@ -117,21 +117,35 @@ public class SelectionManager : NetworkBehaviour
     public void HandleMovableObject()
     {
         HandleGear();
+        HandleThrottle();
+    }
+
+    private void HandleThrottle()
+    {
+        if (currentMovableObject is Throttle throttle)
+        {
+            if (_input.clickHeld)
+            {
+                FirstPersonController.canRotate = false; // disable camera rotation while interacting
+                throttle.Move(Mouse.current.delta.ReadValue().y);
+            }
+            if (!_input.clickHeld)
+            {
+                FirstPersonController.canRotate = true;
+                currentMovableObject = null; // reset the current movable object
+            }
+        }
     }
 
     private void HandleGear()
     {
-
         if (currentMovableObject is Gear gear)
         {
-            Debug.Log("Handling gear interaction.");
             if (_input.clickHeld)
             {
                 FirstPersonController.canRotate = false; // disable camera rotation while interacting with gear
                 if (!gearClicked)
                 {
-                    // store the initial mouse position when the click is first detected
-                    currentMousePosition = Mouse.current.position.ReadValue();
                     gearClicked = true;
                 }
 
@@ -143,7 +157,6 @@ public class SelectionManager : NetworkBehaviour
             }
             if (!_input.clickHeld && gearClicked)
             {
-                Debug.Log("Gear clicked released, updating gear state.");
                 FirstPersonController.canRotate = true;
                 gearClicked = false;
                 gear.UpdateGearState(); // when player releases the mouse button, update the gear's state

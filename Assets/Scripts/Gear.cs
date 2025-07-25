@@ -22,7 +22,7 @@ public class Gear : MovableObject
     private float reversePositionOffset;
 
     // sensitivity for mouse when moving gears
-    float mouseSensitivity = 0.0015f;
+    float mouseSensitivity = 0.0007f;
 
     public bool moved = false; // used to check if lever has been moved by player
 
@@ -77,10 +77,6 @@ public class Gear : MovableObject
 
         Debug.Log($"Current Gear: {currentGear}, Position: {transform.localPosition}");
     }
-
-
-
-
     public void MoveLeverToTarget()
     {
         if (!moved)
@@ -101,7 +97,6 @@ public class Gear : MovableObject
             moved = false; // Movement complete
         }
     }
-
     public void UpdateGearTarget()
     {
         // If gear has changed, update the target position
@@ -111,22 +106,19 @@ public class Gear : MovableObject
             lastGear = currentGear;
         }
     }
-
     public enum GearState
     {
         Drive,
         Reverse,
         Neutral
     }
-
     public void ChangeGear(GearState state)
     {
         currentGear = state;
     }
-
     public void Move(float mouseDeltaY)
     {
-        Vector3 offset = transform.forward * mouseDeltaY * mouseSensitivity;
+        Vector3 offset = transform.forward * (mouseDeltaY / 2) * mouseSensitivity;
         Vector3 newPosition = transform.localPosition + offset;
 
         // Clamp movement along the forward axis only
@@ -143,9 +135,6 @@ public class Gear : MovableObject
         Vector3 clampedPosition = basePosition + (forwardDir * clampedDistance);
         transform.localPosition = clampedPosition;
     }
-
-
-
     public void UpGear()
     {
         if (currentGear == GearState.Neutral)
