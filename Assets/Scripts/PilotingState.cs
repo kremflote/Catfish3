@@ -10,17 +10,22 @@ public class PilotingState : PlayerState
     private FirstPersonController pController;
     private BoatController bController;
     private InventoryToggleManager inventoryToggleManager;
-    public PilotingState(BoatController bController, InventoryToggleManager inventoryToggleManager, FirstPersonController firstPersonController)
+    private SelectionManager selectionManager;
+    public PilotingState(BoatController bController, InventoryToggleManager inventoryToggleManager, FirstPersonController firstPersonController, SelectionManager selectionManager)
     {
         this.pController = firstPersonController;
         this.bController = bController;
         this.inventoryToggleManager = inventoryToggleManager;
+        this.selectionManager = selectionManager;
     }
 
     public override void Update()
     {
         bController.Steer();
         pController.UpdateCursorLock();
+        selectionManager.HandleSelection();
+        selectionManager.CheckMovableObject();
+        selectionManager.HandleMovableObject();
     }
 
     public override void LateUpdate()

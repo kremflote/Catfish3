@@ -65,7 +65,7 @@ namespace StarterAssets
 		public float BottomClamp = -90.0f;
 
 		private bool mouseEnabled;
-
+		public bool canRotate = true; // if false, player can not rotate camera or move
 
 
         // cinemachine
@@ -93,6 +93,7 @@ namespace StarterAssets
         public CharacterController _controller;
 		public PlayerStateMachine StateMachine;
         public StarterAssetsInputs _input {get; set; }
+		public SelectionManager selectionManager; 
 		private GameObject _mainCamera;
         private Camera playerCamera; // scriptet bruker cinemachine for vanlig camera håndtering, denne variablen trengs for pilotmode
         private const float _threshold = 0.01f;
@@ -154,6 +155,9 @@ namespace StarterAssets
 		}
         public void CameraRotation()
 		{
+			if (!canRotate)
+            { return; }
+
 			// if there is an input
 			if (_input.look.sqrMagnitude >= _threshold)
 			{
@@ -272,64 +276,6 @@ namespace StarterAssets
 			if (lfAngle > 360f) lfAngle -= 360f;
 			return Mathf.Clamp(lfAngle, lfMin, lfMax);
 		}
-
-		// HandleMouse brukes kun i pilot mode
-
-        private Vector2 previousMousePosition;
-        private Vector2 currentMousePosition;
-        private int frameCounter = 0;
-        private int frameDelay = 5;
-
-        /* public void HandleMouse()
-        {
-            if (!IsOwner || playerCamera == null || Mouse.current == null) return;
-
-            if (_input.clickHeld)
-            {
-                Debug.Log("Click is being held");
-            }
-   
-
-			Ray ray = playerCamera.ScreenPointToRay(Mouse.current.position.ReadValue());
-            RaycastHit hit;
-            if (Physics.Raycast(ray, out hit))
-            {
-                // introduce polymorphism to interact with different types of controls.
-				InteractableObject interactable = hit.transform.GetComponent<InteractableObject>();
-                
-
-                if (interactable is Gear gear)
-                {
-                    frameCounter++;
-                    currentMousePosition = Vector2.zero;
-					if (currentMousePosition == Vector2.zero) {
-						currentMousePosition = Mouse.current.position.ReadValue();
-                        previousMousePosition = currentMousePosition;
-                    }
-                        
-                    if (frameCounter >= frameDelay)
-                    {
-                        currentMousePosition = Mouse.current.position.ReadValue();
-                        float mouseDeltaY = currentMousePosition.y - previousMousePosition.y;
-
-						// mouse moved down
-						if (mouseDeltaY < 0) {
-							gear.DownGear();
-						}
-
-                        // mouse moved up
-                        if (mouseDeltaY > 0)
-                        {
-                            gear.UpGear();
-                        }
-                        previousMousePosition = Vector2.zero;
-                        frameCounter = 0;
-                        currentMousePosition = Vector2.zero;
-                    }
-                }
-            }
-        } */
-
         private void OnDrawGizmosSelected()
 		{
 			Color transparentGreen = new Color(0.0f, 1.0f, 0.0f, 0.35f);
@@ -341,7 +287,6 @@ namespace StarterAssets
 			// when selected, draw a gizmo in the position of, and matching radius of, the grounded collider
 			Gizmos.DrawSphere(new Vector3(transform.position.x, transform.position.y - GroundedOffset, transform.position.z), GroundedRadius);
 		}
-
         private bool IsCurrentDeviceMouse
         {
             get

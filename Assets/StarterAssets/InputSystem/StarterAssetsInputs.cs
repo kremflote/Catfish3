@@ -4,6 +4,7 @@ using UnityEngine.InputSystem;
 #endif
 using FishNet.Object;
 using FishNet.Connection;
+using Unity.VisualScripting;
 
 namespace StarterAssets
 {   
@@ -24,6 +25,9 @@ namespace StarterAssets
 
         [Header("Click Input")]
         public bool clickHeld;
+        public bool click;
+
+        private InputAction clickAction;
 
 
         [Header("Mouse Cursor Settings")]
@@ -42,9 +46,49 @@ namespace StarterAssets
 
             clickHeld = false;
 
+            clickAction = InputSystem.actions.FindAction("Click");
+
             if (!IsOwner)
                 enabled = false;
         }
+
+        private void Update()
+        {
+            UpdateClickState();
+        }
+
+        private void UpdateClickState()
+        {
+            UpdateClick();
+            UpdateClickHeld();
+        }
+
+        private void UpdateClickHeld()
+        {
+            if (clickAction.WasPressedThisFrame())
+            {
+                clickHeld = true; // mouse is clicked but not released
+            }
+
+            if (clickAction.WasReleasedThisFrame())
+            {
+                clickHeld = false; // mouse click is released
+            }
+        }
+
+        private void UpdateClick()
+        {
+            if (clickAction.IsPressed())
+            {
+                click = true;
+            }
+
+            else
+            {
+                click = false;
+            }
+        }
+
         public void OnMove(InputValue value)
         {
             if (!IsOwner) return;
@@ -61,10 +105,8 @@ namespace StarterAssets
         public void OnClick(InputValue value)
         {
             if (!IsOwner) return;
-
-            clickHeld = value.isPressed;
+            
         }
-
 
         public void OnLook(InputValue value)
         {

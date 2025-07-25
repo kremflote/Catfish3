@@ -1,15 +1,30 @@
 using FishNet.Object;
 using UnityEngine;
 
-public class Gear : InteractableObject
+public class Gear : MovableObject
 {
+    public float leverMoveSpeed;
 
-
-    public float leverMoveSpeed = 5f; // Speed at which the lever moves
     private Vector3 basePosition;
-    private Vector3 targetPosition;
+    private Vector3 targetPosition; // when gears are switched this updates
+
+    // gears
     public GearState currentGear;
     public GearState lastGear;
+
+    // positions of gears
+    Vector3 drivePos;
+    Vector3 neutralPos;
+    Vector3 reversePos;
+
+    // offsets
+    private float drivePositionOffset;
+    private float reversePositionOffset;
+
+    // sensitivity for mouse when moving gears
+    float mouseSensitivity = 0.0015f;
+
+    public bool moved = false; // used to check if lever has been moved by player
 
     private void Start()
     {
@@ -17,10 +32,62 @@ public class Gear : InteractableObject
         currentGear = GearState.Neutral;
         lastGear = currentGear;
         targetPosition = basePosition;
+
+        // set offsets and speed
+        drivePositionOffset = 0.1f;
+        reversePositionOffset = -0.1f;
+        leverMoveSpeed = 5f;
+
+
+        // sets default gear positions based on gameobjects' position
+        drivePos = basePosition + (transform.forward * drivePositionOffset);
+        reversePos = basePosition + (transform.forward * reversePositionOffset);
+        neutralPos = basePosition;
+
     }
 
     private void Update()
     {
+        UpdateGearTarget();
+        MoveLeverToTarget();
+    }
+
+    public void UpdateGearState()
+    {
+        Vector3 leverPosition = transform.localPosition;
+
+        float distToDrive = Vector3.Distance(leverPosition, drivePos);
+        float distToNeutral = Vector3.Distance(leverPosition, neutralPos);
+        float distToReverse = Vector3.Distance(leverPosition, reversePos);
+
+        float minDistance = Mathf.Min(distToDrive, distToNeutral, distToReverse);
+
+        if (minDistance == distToDrive && currentGear != GearState.Drive)
+        {
+            ChangeGear(GearState.Drive);
+        }
+        else if (minDistance == distToReverse && currentGear != GearState.Reverse)
+        {
+            ChangeGear(GearState.Reverse);
+        }
+        else if (minDistance == distToNeutral && currentGear != GearState.Neutral)
+        {
+            ChangeGear(GearState.Neutral);
+        }
+
+        Debug.Log($"Current Gear: {currentGear}, Position: {transform.localPosition}");
+    }
+
+
+
+
+    public void MoveLeverToTarget()
+    {
+        if (!moved)
+        {
+            // No change in gear, no need to move
+            return;
+        }
         // Smoothly move the lever toward the target position
         transform.localPosition = Vector3.MoveTowards(
             transform.localPosition,
@@ -28,6 +95,15 @@ public class Gear : InteractableObject
             leverMoveSpeed * Time.deltaTime
         );
 
+        // Check if movement is complete
+        if (Vector3.Distance(transform.localPosition, targetPosition) < 0.001f)
+        {
+            moved = false; // Movement complete
+        }
+    }
+
+    public void UpdateGearTarget()
+    {
         // If gear has changed, update the target position
         if (currentGear != lastGear)
         {
@@ -47,6 +123,28 @@ public class Gear : InteractableObject
     {
         currentGear = state;
     }
+
+    public void Move(float mouseDeltaY)
+    {
+        Vector3 offset = transform.forward * mouseDeltaY * mouseSensitivity;
+        Vector3 newPosition = transform.localPosition + offset;
+
+        // Clamp movement along the forward axis only
+        Vector3 forwardDir = transform.forward.normalized;
+        Vector3 localOffsetFromBase = newPosition - basePosition;
+
+        // Project movement onto forward direction to get signed distance
+        float projectedDistance = Vector3.Dot(localOffsetFromBase, forwardDir);
+
+        // Clamp between reverse and drive positions
+        float clampedDistance = Mathf.Clamp(projectedDistance, reversePositionOffset, drivePositionOffset);
+
+        // Recalculate final clamped position
+        Vector3 clampedPosition = basePosition + (forwardDir * clampedDistance);
+        transform.localPosition = clampedPosition;
+    }
+
+
 
     public void UpGear()
     {
@@ -80,17 +178,15 @@ public class Gear : InteractableObject
         }
     }
 
-
-
     private void UpdateTargetPosition(GearState state)
     {
         switch (state)
         {
             case GearState.Drive:
-                targetPosition = basePosition + (transform.forward * 0.1f);
+                targetPosition = basePosition + (transform.forward * drivePositionOffset);
                 break;
             case GearState.Reverse:
-                targetPosition = basePosition + (transform.forward * -0.1f);
+                targetPosition = basePosition + (transform.forward * reversePositionOffset);
                 break;
             case GearState.Neutral:
                 targetPosition = basePosition;

@@ -8,18 +8,21 @@ using StarterAssets;
 using UnityEngine.InputSystem;
 using System.Globalization;
 using FishNet.Object;
+using UnityEditor.Timeline.Actions;
 
 
 public class SelectionManager : NetworkBehaviour
 {
     public bool onTarget;
     public GameObject selectedObject;
+    public GameObject draggingObject;
     public PlayerInput _playerInput;
     public StarterAssetsInputs _input;
     public PlayerStateMachine StateMachine;
     public InventoryToggleManager InventoryToggleManager;
     public FirstPersonController FirstPersonController;
     public Camera mainCamera;
+    public float maxDistance = 5f; // Maximum distance for interaction
 
     private void Start()
     {
@@ -43,21 +46,29 @@ public class SelectionManager : NetworkBehaviour
         }
     }
 
-    void Update()
+    public void HandleSelection()
     {
-        if (!IsOwner) return;
-
-        Click();
-
-
         Ray ray = mainCamera.ScreenPointToRay(Mouse.current.position.ReadValue());
         RaycastHit hit;
-        if (Physics.Raycast(ray, out hit))
+
+        // Use a mask to ignore objects in the "Visor" layer
+        int mask = ~LayerMask.GetMask("Visor");
+
+
+        if (Physics.Raycast(ray, out hit, maxDistance, mask))
         {
+            
             var selectionTransform = hit.transform;
             InteractableObject interactable = selectionTransform.GetComponent<InteractableObject>();
+            // If not found on hit object, try its parent
+            if (interactable == null)
+            {
+                interactable = selectionTransform.GetComponentInParent<InteractableObject>();
+            }
 
-            if (interactable && interactable.playerInRange)
+            // Debug.Log("Raycast hit: " + selectionTransform.name + " with interactable: " + (interactable != null ? interactable.name : "null"));
+
+            if (interactable)
             {
                 onTarget = true;
                 selectedObject = interactable.gameObject;
@@ -72,72 +83,72 @@ public class SelectionManager : NetworkBehaviour
 
     public void OnInteract(InputValue value)
     {
-        Debug.Log("OnInteract called with value: " + value.isPressed);
+        // Debug.Log("OnInteract called with value: " + value.isPressed);
 
         if (onTarget && selectedObject != null)
         {
             InteractableObject interactable = selectedObject.GetComponent<InteractableObject>();
             if (interactable != null)
             {
-                Debug.Log("Interacting with: " + interactable.name + FirstPersonController);
-                interactable.Interact(StateMachine, InventoryToggleManager, FirstPersonController);
+                // Debug.Log("Interacting with: " + interactable.name + FirstPersonController);
+                interactable.Interact(StateMachine, InventoryToggleManager, FirstPersonController, this);
             }
         }
     }
 
-    // HandleMouse brukes kun i pilot mode
+
 
     private Vector2 previousMousePosition;
     private Vector2 currentMousePosition;
     private int frameCounter = 0;
     private int frameDelay = 5;
-    public void Click()
+    private bool gearClicked = false;
+    private MovableObject currentMovableObject;
+    public void CheckMovableObject()
     {
-        if (_input.clickHeld)
-        {
-
-            Debug.Log("Click held: " + _input.clickHeld);
-        }
-
-
         if (onTarget && selectedObject != null)
         {
-            InteractableObject interactable = selectedObject.GetComponent<InteractableObject>();
+            MovableObject movableObject = selectedObject.GetComponent<MovableObject>();
             currentMousePosition = Vector2.zero;
+            currentMovableObject = movableObject;
+        }
+    }
 
-            if (interactable is Gear gear)
+    public void HandleMovableObject()
+    {
+        HandleGear();
+    }
+
+    private void HandleGear()
+    {
+
+        if (currentMovableObject is Gear gear)
+        {
+            Debug.Log("Handling gear interaction.");
+            if (_input.clickHeld)
             {
-                Debug.Log("Gear clicked: " + gear.name);
-
-                if (_input.clickHeld)
+                FirstPersonController.canRotate = false; // disable camera rotation while interacting with gear
+                if (!gearClicked)
                 {
-                    if (currentMousePosition == Vector2.zero)
-                    {
-                        currentMousePosition = Mouse.current.position.ReadValue();
-                        previousMousePosition = currentMousePosition;
-                    }
-                    if (frameCounter >= frameDelay)
-                    {
-                        currentMousePosition = Mouse.current.position.ReadValue();
-                        float mouseDeltaY = currentMousePosition.y - previousMousePosition.y;
-
-                        // mouse moved down
-                        if (mouseDeltaY < 0)
-                        {
-                            gear.DownGear();
-                        }
-
-                        // mouse moved up
-                        if (mouseDeltaY > 0)
-                        {
-                            gear.UpGear();
-                        }
-                        previousMousePosition = Vector2.zero;
-                        frameCounter = 0;
-                        currentMousePosition = Vector2.zero;
-                    }
-                    frameCounter++;
+                    // store the initial mouse position when the click is first detected
+                    currentMousePosition = Mouse.current.position.ReadValue();
+                    gearClicked = true;
                 }
+
+                // gear.move y axis based on mouse y position
+                gear.Move(Mouse.current.delta.ReadValue().y);
+
+                // lock mouse to gear's position
+
+            }
+            if (!_input.clickHeld && gearClicked)
+            {
+                Debug.Log("Gear clicked released, updating gear state.");
+                FirstPersonController.canRotate = true;
+                gearClicked = false;
+                gear.UpdateGearState(); // when player releases the mouse button, update the gear's state
+                gear.moved = true; // mark that the gear has been moved
+                currentMovableObject = null; // reset the current movable object
             }
         }
     }

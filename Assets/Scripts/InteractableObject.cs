@@ -8,27 +8,9 @@ using static UnityEngine.GraphicsBuffer;
 
 public class InteractableObject : NetworkBehaviour
 {
-    public bool playerInRange;
     public bool pickupEnabled;
 
-    private void OnTriggerEnter(Collider other)
-    {
-        if (other.CompareTag("Player"))
-        {
-            playerInRange = true;
-        }
-    }
-
-    private void OnTriggerExit(Collider other)
-    {
-        if (other.CompareTag("Player"))
-        {
-            playerInRange = false;
-        }
-    }
-
-    // må overrides i hver child av denne klassen
-    public virtual void Interact(PlayerStateMachine playerState, InventoryToggleManager inventoryToggleManager, FirstPersonController playerController)
+    public virtual void Interact(PlayerStateMachine playerState, InventoryToggleManager inventoryToggleManager, FirstPersonController playerController, SelectionManager selectionManager)
     {
         throw new NotImplementedException();
     }

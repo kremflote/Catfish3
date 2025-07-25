@@ -15,11 +15,11 @@ public class IgnitionKey1 : InteractableObject
 
     public BoatController BoatController;
 
-    public override void Interact(PlayerStateMachine stateMachine, InventoryToggleManager inventoryToggleManager, FirstPersonController playerController)
+    public override void Interact(PlayerStateMachine stateMachine, InventoryToggleManager inventoryToggleManager, FirstPersonController playerController, SelectionManager selectionManager)
     {
         Debug.Log("Interacting with Ignition Key 1");
         HandleKeyInsertion();
-        ToggleIgnition(stateMachine, inventoryToggleManager, playerController);
+        ToggleIgnition(stateMachine, inventoryToggleManager, playerController, selectionManager);
     }
 
     private void HandleKeyInsertion()
@@ -57,7 +57,7 @@ public class IgnitionKey1 : InteractableObject
         return isIn; 
     }
 
-    public void ToggleIgnition(PlayerStateMachine stateMachine, InventoryToggleManager inventoryToggleManager, FirstPersonController playerController)
+    public void ToggleIgnition(PlayerStateMachine stateMachine, InventoryToggleManager inventoryToggleManager, FirstPersonController playerController, SelectionManager selectionManager)
     {
         isOn = !isOn;
 
@@ -72,7 +72,7 @@ public class IgnitionKey1 : InteractableObject
         {
             // Rotate the key to the "on" position
             key1.localRotation = Quaternion.Euler(0, 0, 0);
-            stateMachine.SwitchState(new PilotingState(BoatController, inventoryToggleManager, playerController)); // Viktig linje. Den sender båtens kontroller til spillerens state machine som setter han i pilotmode til båten. Konsulter drawio filen for visualisering
+            stateMachine.SwitchState(new PilotingState(BoatController, inventoryToggleManager, playerController, selectionManager)); // Viktig linje. Den sender båtens kontroller til spillerens state machine som setter han i pilotmode til båten. Konsulter drawio filen for visualisering
 
         }
     }

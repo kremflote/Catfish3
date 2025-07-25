@@ -30,8 +30,6 @@ public class BoatController : NetworkBehaviour
         wheelScript = boat.wheel.GetComponent<Wheel>();
     }
 
-    
-
     public void Steer()
     {
         if (boat == null || wheelScript == null || _input == null) {

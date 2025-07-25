@@ -2259,7 +2259,6 @@ GameObject:
   - component: {fileID: 1689932901}
   - component: {fileID: 1689932900}
   - component: {fileID: 1689932899}
-  - component: {fileID: 1689932903}
   - component: {fileID: 1689932904}
   m_Layer: 0
   m_Name: Ignition1plate
@@ -2360,27 +2359,6 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1689932897}
   m_Mesh: {fileID: 10206, guid: 0000000000000000e000000000000000, type: 0}
---- !u!65 &1689932903
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1689932897}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 1
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 40.427208, y: 188.60414, z: 43.6028}
-  m_Center: {x: -3.463459, y: 62.064835, z: -12.128559}
 --- !u!114 &1689932904
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2396,7 +2374,6 @@ MonoBehaviour:
   _componentIndexCache: 255
   _addedNetworkObject: {fileID: 5198844830452083011}
   _networkObjectCache: {fileID: 0}
-  playerInRange: 0
   pickupEnabled: 0
   isOn: 0
   isIn: 0
@@ -2629,6 +2606,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1740840517}
   - component: {fileID: 1740840518}
+  - component: {fileID: 1740840520}
   m_Layer: 0
   m_Name: Gear
   m_TagString: Untagged
@@ -2645,7 +2623,7 @@ Transform:
   m_GameObject: {fileID: 1740840516}
   serializedVersion: 2
   m_LocalRotation: {x: -0.18642971, y: 0, z: 0, w: 0.9824683}
-  m_LocalPosition: {x: 0.1149, y: 0.04540646, z: -0.017341614}
+  m_LocalPosition: {x: 0.1149, y: 0.046, z: -0.018}
   m_LocalScale: {x: 1.83, y: 1.83, z: 1.83}
   m_ConstrainProportionsScale: 1
   m_Children:
@@ -2668,11 +2646,33 @@ MonoBehaviour:
   _componentIndexCache: 255
   _addedNetworkObject: {fileID: 5198844830452083011}
   _networkObjectCache: {fileID: 0}
-  playerInRange: 0
   pickupEnabled: 0
   leverMoveSpeed: 1
   currentGear: 2
   lastGear: 0
+--- !u!136 &1740840520
+CapsuleCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1740840516}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Radius: 0.00890599
+  m_Height: 0.069791704
+  m_Direction: 1
+  m_Center: {x: -0.043523155, y: 0.0038653226, z: 0.0022780376}
 --- !u!1 &1758793311
 GameObject:
   m_ObjectHideFlags: 0

@@ -2,9 +2,17 @@ using StarterAssets;
 
 public class MovementState : PlayerState
 {
+
+    private SelectionManager selectionManager;
     public MovementState(FirstPersonController controller)
     {
         pController = controller;
+        selectionManager = controller.selectionManager;
+
+        if (selectionManager == null)
+        {
+
+        }
     }
 
     private FirstPersonController pController;
@@ -15,6 +23,7 @@ public class MovementState : PlayerState
         pController.JumpAndGravity();
         pController.Move();
         pController.UpdateCursorLock();
+        selectionManager.HandleSelection();
     }
 
     public override void LateUpdate()

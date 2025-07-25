@@ -252,6 +252,7 @@ MonoBehaviour:
   _playerInput: {fileID: 0}
   _controller: {fileID: 0}
   StateMachine: {fileID: 1493561170705348856}
+  selectionManager: {fileID: 1337532440302967053}
 --- !u!114 &1836650178498124470
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -371,6 +372,7 @@ MonoBehaviour:
   sprint: 0
   analogMovement: 0
   clickHeld: 0
+  click: 0
   cursorLocked: 1
   cursorInputForLook: 1
   selectionManager: {fileID: 1337532440302967053}
@@ -502,6 +504,7 @@ MonoBehaviour:
   InventoryToggleManager: {fileID: 3689181912508616400}
   FirstPersonController: {fileID: 3188586399734228761}
   mainCamera: {fileID: 6570115208068853297}
+  maxDistance: 5
 --- !u!114 &1493561170705348856
 MonoBehaviour:
   m_ObjectHideFlags: 0
