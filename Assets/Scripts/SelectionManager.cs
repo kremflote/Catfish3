@@ -96,8 +96,6 @@ public class SelectionManager : NetworkBehaviour
         }
     }
 
-
-
     private Vector2 previousMousePosition;
     private Vector2 currentMousePosition;
     private int frameCounter = 0;

@@ -4,7 +4,7 @@ using UnityEngine;
 public class Throttle : MovableObject
 {
     [Header("Throttle Settings")]
-    private float _throttleValue = 0f;       // Current lever position
+    public float _throttleValue = 0f;       // Current lever position
     public float _throttleApplied = 0f;     // Target lever position
     public float _maxThrottle = 0.10f;
 
@@ -47,18 +47,20 @@ public class Throttle : MovableObject
 
     void Update()
     {
-        // do nothing if the throttleValue hasnt changed (significantly)
-        if (Mathf.Approximately(_throttleValue, _throttleApplied))
-            return;
 
-        // Smoothly move the lever toward the desired position
-        _throttleValue = Mathf.MoveTowards(_throttleValue, _throttleApplied, leverMoveSpeed * Time.deltaTime);
+        // Calculate offset from base position
+        Vector3 localOffset = transform.localPosition - basePosition;
 
-        // Convert throttleValue to a local offset from base position
-        transform.localPosition = basePosition + (transform.forward * _throttleValue);
+        // Project onto forward axis to get how far the lever has moved (positive or negative)
+        float projectedDistance = Vector3.Dot(localOffset, transform.forward.normalized);
 
-        // clamping the throttle value to the maximum throttle
-        _throttleApplied = Mathf.Clamp(_throttleApplied, -_maxThrottle, _maxThrottle);
+        // Clamp it to ensure it's within valid range
+        _throttleApplied = Mathf.Clamp(projectedDistance, -_maxThrottle, _maxThrottle);
 
+        // Apply the calculated throttle to the lever position
+        transform.localPosition = basePosition + (transform.forward * _throttleApplied);
+
+        // Sync throttle value
+        _throttleValue = _throttleApplied;
     }
 }

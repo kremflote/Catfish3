@@ -21,6 +21,7 @@ public class PilotingState : PlayerState
 
     public override void Update()
     {
+        pController.UpdatePlayerParent();
         bController.Steer();
         pController.UpdateCursorLock();
         selectionManager.HandleSelection();

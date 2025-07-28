@@ -98,8 +98,6 @@ namespace StarterAssets
         private Camera playerCamera; // scriptet bruker cinemachine for vanlig camera håndtering, denne variablen trengs for pilotmode
         private const float _threshold = 0.01f;
 
-		
-
 		public override void OnStartClient()
 		{
             base.OnStartClient();
@@ -146,6 +144,38 @@ namespace StarterAssets
                 mouseEnabled = false;
                 Cursor.lockState = CursorLockMode.Locked;
             }
+        }
+
+        // parents player to the boat root if it is on a boat and unparents if not
+        public void UpdatePlayerParent()
+        {
+            Transform playerRootTransform = transform.parent;
+
+            float rayDistance = 5f;
+            Ray ray = new Ray(transform.position, Vector3.down);
+
+            if (Physics.Raycast(ray, out RaycastHit hit, rayDistance))
+            {
+                Transform current = hit.collider.transform;
+				Debug.Log("Raycast hit: " + current.name);
+
+                while (current != null)
+                {
+                    // Check if this GameObject has a child named "ModifiedBoat"
+                    Transform modifiedBoat = current.Find("modifiedboat");
+                    if (modifiedBoat != null)
+                    {
+						Debug.Log("Found modifiedboat in: " + current.name);
+                        playerRootTransform.SetParent(current); // Parent to the boat root
+                        return;
+                    }
+
+                    current = current.parent; // Walk up the hierarchy
+                }
+            }
+
+            // No valid boat found below — unparent
+            playerRootTransform.SetParent(null);
         }
         public void GroundedCheck()
 		{

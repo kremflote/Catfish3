@@ -19,10 +19,13 @@ public class MovementState : PlayerState
 
     public override void Update()
     {
+        pController.UpdatePlayerParent();
+
         pController.GroundedCheck();
         pController.JumpAndGravity();
         pController.Move();
         pController.UpdateCursorLock();
+        
         selectionManager.HandleSelection();
     }
 

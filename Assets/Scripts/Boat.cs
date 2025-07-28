@@ -15,36 +15,82 @@ public class Boat : NetworkBehaviour, IDrivable
     [Tooltip("Acceleration and deceleration")]
     public float SpeedChangeRate = 10.0f;
 
-    public GameObject wheel;
-    public GameObject throttle;
-    public GameObject gear;
-    public GameObject ignition1;
+    public GameObject wheelGO;
+    public GameObject throttleGO;
+    public GameObject gearGO;
+    public GameObject ignition1GO;
+    public Gear gear;
+    public Throttle throttle;
+    public Wheel wheel;
 
     public IgnitionKey1 ignitionKey;
-    public bool IsKeyInserted { get; set; }
+    public bool IgnitionOn { get; set; }
     public BoatController boatController { get; set; }
 
     private void Start()
     {
-        ignitionKey = ignition1.GetComponent<IgnitionKey1>();
-        IsKeyInserted = false;
+        ignitionKey = ignition1GO.GetComponent<IgnitionKey1>();
+        IgnitionOn = false;
+
+        gear = gearGO.GetComponent<Gear>();
+        throttle = throttleGO.GetComponent<Throttle>();
+        wheel = wheelGO.GetComponent<Wheel>();
     }
 
-    private void MoveBoat(float move, float turn)
+    private void Update()
     {
+        CheckIgnition();
 
+        if (!IgnitionOn)
+            return;
 
+        MoveBoat(); // Apllies movement to boat based on boat variables
     }
-    public void InsertKey()
+
+    private void CheckIgnition()
     {
-        throw new System.NotImplementedException();
+        if (!ignitionKey.IsOn() && ignitionKey.IsIn())
+        {
+            IgnitionOn = true;
+        }
+        else
+        {
+            IgnitionOn = false;
+        }
     }
-    public void EnterPilotMode()
+
+    private void MoveBoat()
     {
-        throw new System.NotImplementedException();
-    }
-    public void ExitPilotMode()
-    {
-        throw new System.NotImplementedException();
+        // Determine direction based on current gear
+        float directionMultiplier = gear.currentGear switch
+        {
+            Gear.GearState.Drive => 1f,
+            Gear.GearState.Reverse => -1f,
+            _ => 0f // Neutral
+        };
+
+        Debug.Log($"Current Gear: {gear.currentGear}, Direction Multiplier: {directionMultiplier}");
+
+        if (directionMultiplier == 0f)
+            return; // Don't move if in Neutral
+
+        // Get throttle force
+        float throttleForce = throttle._throttleValue;
+
+        Debug.Log($"Throttle Value: {throttleForce}");
+
+        // Get steering direction based on wheel angle
+        float steeringAngle = wheel.GetAngle(); // In degrees
+        Quaternion rotation = Quaternion.Euler(0f, steeringAngle, 0f);
+        Vector3 forwardDirection = rotation * transform.forward;
+
+        Debug.Log($"Steering Angle: {steeringAngle}, Forward Direction: {forwardDirection}");
+
+        // Calculate and apply movement
+        Vector3 movement = forwardDirection * throttleForce * directionMultiplier;
+        transform.position += movement * Time.deltaTime;
+
+        Debug.Log($"Boat Position: {transform.position}, Movement: {movement}");
+
     }
 }
