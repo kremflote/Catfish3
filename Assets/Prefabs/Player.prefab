@@ -247,10 +247,10 @@ MonoBehaviour:
   CinemachineCameraTarget: {fileID: 4931084307880395033}
   TopClamp: 89
   BottomClamp: -89
-  InventoryToggleManager: {fileID: 0}
-  _playerInput: {fileID: 0}
-  _controller: {fileID: 0}
-  StateMachine: {fileID: 1493561170705348856}
+  playerContext: {fileID: 965223054242451012}
+  mainCameraObject: {fileID: 6687037434783411328}
+  inventoryToggleManager: {fileID: 3689181912508616400}
+  stateMachine: {fileID: 1493561170705348856}
   selectionManager: {fileID: 1337532440302967053}
 --- !u!114 &1836650178498124470
 MonoBehaviour:
@@ -427,6 +427,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3693007648703713847}
   - component: {fileID: 1137363560515037145}
+  - component: {fileID: 965223054242451012}
   - component: {fileID: 1337532440302967053}
   - component: {fileID: 1493561170705348856}
   - component: {fileID: 3598093824962235337}
@@ -475,10 +476,27 @@ MonoBehaviour:
   _addedNetworkObject: {fileID: 3598093824962235337}
   _networkObjectCache: {fileID: 0}
   mainCameraGO: {fileID: 6687037434783411328}
-  PlayerFollowCamera: {fileID: 104223982533341243}
+  playerFollowCamera: {fileID: 104223982533341243}
   playerCapsuleGO: {fileID: 3707571996107640156}
   canvasGO: {fileID: 7351183735451688645}
   managersGO: {fileID: 1287725839795666001}
+--- !u!114 &965223054242451012
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4367201381518215038}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9652230fe76044808f88dc56d42b4537, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  input: {fileID: 8750163120122580453}
+  stateMachine: {fileID: 1493561170705348856}
+  inventoryToggleManager: {fileID: 3689181912508616400}
+  firstPersonController: {fileID: 3188586399734228761}
+  mainCamera: {fileID: 6570115208068853297}
 --- !u!114 &1337532440302967053
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -496,12 +514,8 @@ MonoBehaviour:
   _networkObjectCache: {fileID: 0}
   onTarget: 0
   selectedObject: {fileID: 0}
-  _playerInput: {fileID: 1836650178498124470}
-  _input: {fileID: 8750163120122580453}
-  StateMachine: {fileID: 1493561170705348856}
-  InventoryToggleManager: {fileID: 3689181912508616400}
-  FirstPersonController: {fileID: 3188586399734228761}
-  mainCamera: {fileID: 6570115208068853297}
+  draggingObject: {fileID: 0}
+  context: {fileID: 965223054242451012}
   maxDistance: 5
 --- !u!114 &1493561170705348856
 MonoBehaviour:

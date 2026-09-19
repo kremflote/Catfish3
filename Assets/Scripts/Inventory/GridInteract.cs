@@ -26,7 +26,7 @@ public class GridInteract : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
         if (inventoryController == null)
             return;
 
-        inventoryController.SetLastPlacementItemGrid(itemGrid);
+        inventoryController.SetHoveredGrid(itemGrid);
         inventoryController.SetItemGrid(itemGrid);
         pointerOnGrid = true;
     }
@@ -36,6 +36,7 @@ public class GridInteract : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
         if (inventoryController == null)
             return;
 
+        inventoryController.SetHoveredGrid(null);
         inventoryController.SetItemGrid(null);
         pointerOnGrid = false;
     }

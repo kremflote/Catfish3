@@ -1,20 +1,16 @@
 using UnityEngine;
-using UnityEngine.UI;
 using UnityEngine.InputSystem;
 using UnityEngine.Rendering.Universal;
 using FishNet.Object;
 using StarterAssets;
-using System;
 
-public class PlayerComponentsEnabler : NetworkBehaviour
+[DisallowMultipleComponent]
+[RequireComponent(typeof(PlayerContext))]
+public class LocalPlayerInitializer : NetworkBehaviour
 {
-    // for at multiplayer skal fungere er det veldig viktig at n�r player prefabs spawner inn, at kun den playeren skal styre f�r sine components enabled
-    // mao hvis flere f�r feks input component enabled, vil en player kunne styre alle andre players
-    // derfor b�r components i player prefabs v�re disabled, og bli manuelt enabled i dette scriptet.
-
-
+    // Enables the camera, input, UI, and managers only on the owning player's clone.
     [SerializeField] private GameObject mainCameraGO;
-    [SerializeField] private GameObject PlayerFollowCamera;
+    [SerializeField] private GameObject playerFollowCamera;
     [SerializeField] private GameObject playerCapsuleGO;
     [SerializeField] private GameObject canvasGO;
     [SerializeField] private GameObject managersGO;
@@ -42,8 +38,8 @@ public class PlayerComponentsEnabler : NetworkBehaviour
         if (mainCameraGO == null)
             mainCameraGO = GetComponentInChildren<Camera>(true)?.gameObject;
 
-        if (PlayerFollowCamera == null)
-            PlayerFollowCamera = GetComponentInChildren<Cinemachine.CinemachineVirtualCamera>(true)?.gameObject;
+        if (playerFollowCamera == null)
+            playerFollowCamera = GetComponentInChildren<Cinemachine.CinemachineVirtualCamera>(true)?.gameObject;
 
         if (playerCapsuleGO == null)
             playerCapsuleGO = GetComponentInChildren<FirstPersonController>(true)?.gameObject;
@@ -59,10 +55,10 @@ public class PlayerComponentsEnabler : NetworkBehaviour
     }
     private void EnablePlayerFollowCameraComponents()
     {
-        if (PlayerFollowCamera == null)
+        if (playerFollowCamera == null)
             return;
 
-        var cinemachineVirtualCamera = PlayerFollowCamera.GetComponent<Cinemachine.CinemachineVirtualCamera>();
+        var cinemachineVirtualCamera = playerFollowCamera.GetComponent<Cinemachine.CinemachineVirtualCamera>();
         if (cinemachineVirtualCamera != null) cinemachineVirtualCamera.enabled = true;
     }
 
@@ -116,6 +112,12 @@ public class PlayerComponentsEnabler : NetworkBehaviour
 
     private void EnablePlayerComponents()
     {
+        PlayerContext context = GetComponent<PlayerContext>();
+        if (context == null)
+            context = gameObject.AddComponent<PlayerContext>();
+
+        context.ResolveReferences();
+
         SelectionManager selectionManager = GetComponent<SelectionManager>();
         if (selectionManager != null)
             selectionManager.enabled = true;

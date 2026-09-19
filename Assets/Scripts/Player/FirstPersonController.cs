@@ -68,11 +68,13 @@ namespace StarterAssets
 		private bool canRotate = true;
         private float _cinemachineTargetPitch;
 
-        [Header("InventoryToggleManager")]
-        [Tooltip("Changes movement if inventory is open")]
-        public InventoryToggleManager InventoryToggleManager;
+        [Header("References")]
+        [SerializeField] private PlayerContext playerContext;
+        [SerializeField] private GameObject mainCameraObject;
+        [SerializeField] private InventoryToggleManager inventoryToggleManager;
+        [SerializeField] private PlayerStateMachine stateMachine;
+        [SerializeField] private SelectionManager selectionManager;
 
-        [Header("Player")]
         private float _speed;
 		private float _rotationVelocity;
 		private float _verticalVelocity;
@@ -82,15 +84,20 @@ namespace StarterAssets
 
 
 #if ENABLE_INPUT_SYSTEM
-        public PlayerInput _playerInput;
+        private PlayerInput _playerInput;
 #endif
-        public CharacterController _controller;
-		public PlayerStateMachine StateMachine;
-        public PlayerInputState _input {get; set; }
-		public SelectionManager selectionManager; 
-		private GameObject _mainCamera;
+        private CharacterController _controller;
+        private PlayerInputState _input;
+        private GameObject _mainCamera;
         private Camera playerCamera;
+        private PlayerInputMode currentInputMode = PlayerInputMode.Gameplay;
+        private bool wantsCursorLocked = true;
         private const float _threshold = 0.01f;
+
+        public InventoryToggleManager InventoryToggleManager => inventoryToggleManager;
+        public PlayerStateMachine StateMachine => stateMachine;
+        public PlayerInputState Input => _input;
+        public SelectionManager SelectionManager => selectionManager;
 
 		public override void OnStartClient()
 		{
@@ -101,9 +108,13 @@ namespace StarterAssets
             if (base.IsOwner)
             {
                 InitializeComponents();
-                StateMachine.Initialize(new MovementState(this));
-                _mainCamera.SetActive(true);
-				playerCamera = _mainCamera.GetComponent<Camera>();
+                if (stateMachine != null)
+                    stateMachine.Initialize(new MovementState(this));
+                if (_mainCamera != null)
+                {
+                    _mainCamera.SetActive(true);
+                    playerCamera = _mainCamera.GetComponent<Camera>();
+                }
                 
 #if ENABLE_INPUT_SYSTEM
                 _playerInput = GetComponent<PlayerInput>();
@@ -117,16 +128,49 @@ namespace StarterAssets
         }
         private void InitializeComponents()
         {
-            Transform parent = transform.parent;
-            Transform mainCamera = parent.Find("MainCamera");
-            Transform managers = parent.Find("Managers");
-            Transform inventoryToggleManagerGO = managers.Find("InventoryToggleManager");
-            InventoryToggleManager = inventoryToggleManagerGO.GetComponent<InventoryToggleManager>();
-            _mainCamera = mainCamera.gameObject;
-            _input = GetComponent<PlayerInputState>();
+            Transform playerRoot = transform.root;
+
+            if (playerContext == null)
+                playerContext = playerRoot.GetComponent<PlayerContext>();
+
+            if (playerContext == null)
+                playerContext = playerRoot.gameObject.AddComponent<PlayerContext>();
+
+            playerContext.ResolveReferences();
+
+            if (mainCameraObject == null)
+                mainCameraObject = playerContext.MainCamera != null ? playerContext.MainCamera.gameObject : null;
+
+            if (inventoryToggleManager == null)
+                inventoryToggleManager = playerContext.InventoryToggleManager;
+
+            if (_input == null)
+                _input = playerContext.Input != null ? playerContext.Input : GetComponent<PlayerInputState>();
+
+            if (stateMachine == null)
+                stateMachine = playerContext.StateMachine;
+
+            if (selectionManager == null)
+                selectionManager = playerRoot.GetComponent<SelectionManager>();
+
+            _mainCamera = mainCameraObject;
+
+            if (_mainCamera == null)
+                Debug.LogError("Main camera reference is missing.", this);
+
+            if (inventoryToggleManager == null)
+                Debug.LogError("InventoryToggleManager reference is missing.", this);
+
+            if (_input == null)
+                Debug.LogError("PlayerInputState reference is missing.", this);
+
+            if (stateMachine == null)
+                Debug.LogError("PlayerStateMachine reference is missing.", this);
         }
         public void ApplyInputMode(PlayerInputMode mode)
         {
+            currentInputMode = mode;
+
             switch (mode)
             {
                 case PlayerInputMode.Inventory:
@@ -143,11 +187,43 @@ namespace StarterAssets
 
         private void ApplyInputSettings(bool cursorLocked, bool lookEnabled, bool interactEnabled, bool rotationEnabled)
         {
-            Cursor.lockState = cursorLocked ? CursorLockMode.Locked : CursorLockMode.None;
-            Cursor.visible = !cursorLocked;
+            wantsCursorLocked = cursorLocked;
+            ApplyCursorState();
             canRotate = rotationEnabled;
+            if (_input == null)
+                return;
+
             _input.SetLookInputEnabled(lookEnabled);
             _input.SetInteractInputEnabled(interactEnabled);
+        }
+
+        private void ApplyCursorState()
+        {
+            Cursor.lockState = wantsCursorLocked ? CursorLockMode.Locked : CursorLockMode.None;
+            Cursor.visible = !wantsCursorLocked;
+        }
+
+        private void Update()
+        {
+            if (!IsOwner)
+                return;
+
+            EnsureCursorState();
+        }
+
+        private void OnApplicationFocus(bool hasFocus)
+        {
+            if (hasFocus && IsOwner)
+                EnsureCursorState();
+        }
+
+        private void EnsureCursorState()
+        {
+            CursorLockMode expectedLockState = wantsCursorLocked ? CursorLockMode.Locked : CursorLockMode.None;
+            bool expectedVisible = !wantsCursorLocked;
+
+            if (Cursor.lockState != expectedLockState || Cursor.visible != expectedVisible)
+                ApplyInputMode(currentInputMode);
         }
         public void UpdatePlayerParent()
         {

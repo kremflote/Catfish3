@@ -44,6 +44,8 @@ public class InventoryItem : MonoBehaviour
         this.itemData = itemData;
         this.Width = itemData.width;
         this.Height = itemData.height;
+        zRotation = 0f;
+        transform.localRotation = Quaternion.identity;
 
         GetComponent<Image>().sprite = itemData.itemIcon;
         SetSizeDelta();
@@ -71,10 +73,10 @@ public class InventoryItem : MonoBehaviour
     internal void FlipItemInventory(float zRotation)
     {
         this.zRotation += zRotation;
+        this.zRotation %= 360f;
         int oldWidth = Width;
         int oldHeight = Height;
         Width = oldHeight;
         Height = oldWidth;
-
     }
 }

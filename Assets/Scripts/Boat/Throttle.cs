@@ -1,4 +1,5 @@
 using FishNet.Object;
+using FishNet.Connection;
 using UnityEngine;
 
 public class Throttle : MovableObject
@@ -17,9 +18,13 @@ public class Throttle : MovableObject
     private float minPositionOffset;
 
     private Vector3 basePosition;
+    [SerializeField] private Boat boat;
 
     private void Start()
     {
+        if (boat == null)
+            boat = GetComponentInParent<Boat>();
+
         basePosition = transform.localPosition; // Store the lever's rest position
         maxPositionOffset = 0.1f;
         minPositionOffset = -0.1f;
@@ -27,6 +32,14 @@ public class Throttle : MovableObject
 
     public void Move(float mouseDeltaY)
     {
+        Move(mouseDeltaY, -1);
+    }
+
+    public void Move(float mouseDeltaY, int pilotClientId)
+    {
+        if (!CanPilotMove(pilotClientId))
+            return;
+
         if (IsServerInitialized)
         {
             MoveLocal(mouseDeltaY);
@@ -37,14 +50,23 @@ public class Throttle : MovableObject
         MoveLocal(mouseDeltaY);
 
         if (IsClientInitialized)
-            MoveServerRpc(mouseDeltaY);
+            MoveServerRpc(mouseDeltaY, pilotClientId);
     }
 
     [ServerRpc(RequireOwnership = false)]
-    private void MoveServerRpc(float mouseDeltaY)
+    private void MoveServerRpc(float mouseDeltaY, int pilotClientId, NetworkConnection conn = null)
     {
+        int requesterId = conn != null && conn.IsValid ? conn.ClientId : pilotClientId;
+        if (!CanPilotMove(requesterId))
+            return;
+
         MoveLocal(mouseDeltaY);
         SyncThrottleObserversRpc(transform.localPosition, _throttleApplied, _throttleValue);
+    }
+
+    private bool CanPilotMove(int pilotClientId)
+    {
+        return boat == null || boat.IsPilot(pilotClientId);
     }
 
     [ObserversRpc(ExcludeServer = true)]

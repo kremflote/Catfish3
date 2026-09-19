@@ -1,4 +1,3 @@
-using System;
 using FishNet.Object;
 using StarterAssets;
 using UnityEngine;
@@ -12,6 +11,7 @@ public class BoatController : NetworkBehaviour
     public PlayerInputState _input { get; set; }
     public InventoryToggleManager inventoryToggleManager;
     public Boat boat;
+    private int pilotClientId = -1;
 
 
     public void Initialize(InventoryToggleManager inventoryToggleManager, PlayerStateMachine stateMachine)
@@ -29,13 +29,24 @@ public class BoatController : NetworkBehaviour
         }
         float steerInput = _input.move.x;
 
-        boat.SetSteeringInput(steerInput);
+        boat.SetSteeringInput(steerInput, pilotClientId);
     }
 
-    internal object GetPilotPosition()
+    public void BeginPiloting(PlayerInputState input)
     {
-        throw new NotImplementedException();
+        _input = input;
+        pilotClientId = input != null && input.Owner.IsValid ? input.Owner.ClientId : -1;
+
+        if (boat != null)
+            boat.SetPilot(pilotClientId);
     }
 
+    public void EndPiloting()
+    {
+        if (boat != null)
+            boat.ClearPilot(pilotClientId);
 
+        pilotClientId = -1;
+        _input = null;
+    }
 }

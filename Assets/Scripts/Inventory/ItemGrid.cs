@@ -33,6 +33,11 @@ public class ItemGrid : MonoBehaviour
         return gridSizeWidth;
     }
 
+    public int GetGridSizeHeight()
+    {
+        return gridSizeHeight;
+    }
+
     private void Init(int width, int heigth)
     {
         inventoryItemSlot = new InventoryItem[width, heigth];
@@ -41,10 +46,16 @@ public class ItemGrid : MonoBehaviour
     }
     internal InventoryItem GetItem(int x, int y)
     {
+        if (!PositionCheck(x, y))
+            return null;
+
         return inventoryItemSlot[x, y];
     }
     public InventoryItem PickUpItem(int x, int y)
     {
+        if (!PositionCheck(x, y))
+            return null;
+
         InventoryItem toReturn = inventoryItemSlot[x, y];
 
         if (toReturn == null) { return null; }
@@ -55,16 +66,27 @@ public class ItemGrid : MonoBehaviour
     }
     private void GridClear(InventoryItem item)
     {
+        if (item == null)
+            return;
+
         for (int ix = 0; ix < item.Width; ix++)
         {
             for (int iy = 0; iy < item.Height; iy++)
             {
-                inventoryItemSlot[item.GetonGridPositionX() + ix, item.GetonGridPositionY() + iy] = null;
+                int x = item.GetonGridPositionX() + ix;
+                int y = item.GetonGridPositionY() + iy;
+
+                if (PositionCheck(x, y) && inventoryItemSlot[x, y] == item)
+                    inventoryItemSlot[x, y] = null;
             }
         }
     }
     public bool PlaceItem(InventoryItem inventoryItem, int posX, int posY, out List<InventoryItem> overlappingItems)
     {
+        overlappingItems = null;
+        if (inventoryItem == null)
+            return false;
+
         PlacementValidationResult checkResult = PlacementCheck(posX, posY, inventoryItem.Width, inventoryItem.Height);
         overlappingItems = checkResult.overlappingItems;
 
@@ -85,6 +107,9 @@ public class ItemGrid : MonoBehaviour
     }
     public void PlaceItem(InventoryItem inventoryItem, int posX, int posY)
     {
+        if (inventoryItem == null || !PositionCheck(posX, posY, inventoryItem.Width, inventoryItem.Height))
+            return;
+
         // setter parameter inventoryItem parent til denne item gridden
         RectTransform rectTransform = inventoryItem.GetComponent<RectTransform>();
         rectTransform.SetParent(this.rectTransform, false);
@@ -154,18 +179,18 @@ public class ItemGrid : MonoBehaviour
     }
     public Vector2Int? FindSpaceForObject(InventoryItem itemToInsert)
     {
-        int height = gridSizeHeight - itemToInsert.Height + 1;
-        int width = gridSizeWidth - itemToInsert.Width + 1;
+        if (itemToInsert == null || itemToInsert.Width > gridSizeWidth || itemToInsert.Height > gridSizeHeight)
+            return null;
 
-        Debug.Log($"Finding space for item of size {itemToInsert.Width}x{itemToInsert.Height} in a grid of size {gridSizeWidth}x{gridSizeHeight}.");
+        int maxY = gridSizeHeight - itemToInsert.Height;
+        int maxX = gridSizeWidth - itemToInsert.Width;
 
-        for (int y = 0; y <= height; y++)
+        for (int y = 0; y <= maxY; y++)
         {
-            for (int x = 0; x <= width; x++)
+            for (int x = 0; x <= maxX; x++)
             {
                 if (CheckAvailableSpace(x, y, itemToInsert.Width, itemToInsert.Height) == true)
                 {
-                    Debug.Log($"Found space for item at {x}, {y}");
                     return new Vector2Int(x, y);
                 }
             }
@@ -332,15 +357,12 @@ public class ItemGrid : MonoBehaviour
             return;
         }
 
-        InventoryItem item = inventoryItemSlot[i, targetRow];
+        ClearItem(inventoryItemSlot[i, targetRow]);
+    }
 
-        if (item != null)
-        {
-            // Optional: remove any visual/UI or data associations
-            // e.g., Destroy(item.gameObject) if you're using GameObjects
-
-            inventoryItemSlot[i, targetRow] = null;
-        }
+    internal void ClearItem(InventoryItem item)
+    {
+        GridClear(item);
     }
     public struct PlacementValidationResult
     {

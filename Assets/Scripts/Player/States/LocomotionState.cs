@@ -9,7 +9,7 @@ public abstract class LocomotionState : PlayerState
     protected LocomotionState(FirstPersonController controller, SelectionManager selectionManager = null)
     {
         pController = controller;
-        this.selectionManager = selectionManager ?? controller.selectionManager;
+        this.selectionManager = selectionManager ?? controller.SelectionManager;
     }
 
     public override void Enter()

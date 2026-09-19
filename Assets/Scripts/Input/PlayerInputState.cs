@@ -6,7 +6,13 @@ using UnityEngine.InputSystem;
 using FishNet.Object;
 
 namespace StarterAssets
-{   
+{
+    public enum InventoryMouseButton
+    {
+        Left,
+        Right
+    }
+
     // Owner-side input cache used by player, selection, and boat control code.
     public class PlayerInputState : NetworkBehaviour
     {
@@ -23,6 +29,8 @@ namespace StarterAssets
         public bool clickHeld;
         public bool clickPressedThisFrame;
         public bool clickReleasedThisFrame;
+        public Vector2 pointerPosition;
+        public Vector2 pointerDelta;
 
         [Header("Inventory Input")]
         [SerializeField] private InventoryToggleManager inventoryToggleManager;
@@ -33,7 +41,7 @@ namespace StarterAssets
         public event Action OnTPressed;
         public event Action OnUPressed;
         public event Action<int> OnHotbarKeyPressed;
-        public event Action<string> OnMouseClick;
+        public event Action<InventoryMouseButton> OnMouseClick;
 
         public SelectionManager selectionManager;
 
@@ -50,6 +58,8 @@ namespace StarterAssets
             clickHeld = false;
             clickPressedThisFrame = false;
             clickReleasedThisFrame = false;
+            pointerPosition = Vector2.zero;
+            pointerDelta = Vector2.zero;
 
             if (!IsOwner)
             {
@@ -65,6 +75,7 @@ namespace StarterAssets
         {
             clickPressedThisFrame = false;
             clickReleasedThisFrame = false;
+            pointerDelta = Vector2.zero;
         }
 
         // Receives movement input from Unity's PlayerInput component and caches it for the controller.
@@ -93,7 +104,7 @@ namespace StarterAssets
             clickReleasedThisFrame = wasHeld && !clickHeld;
 
             if (value.isPressed)
-                OnMouseClick?.Invoke("Left Click");
+                OnMouseClick?.Invoke(InventoryMouseButton.Left);
         }
 
         // Receives mouse/look input and caches it, unless UI or another state has locked camera look.
@@ -101,6 +112,20 @@ namespace StarterAssets
         {
             if (!CanAcceptInput || !lookInputEnabled) return;
             LookInput(value.Get<Vector2>());
+        }
+
+        // Receives the pointer screen position so other player scripts do not poll Mouse.current directly.
+        public void OnPointerPosition(InputValue value)
+        {
+            if (!CanAcceptInput) return;
+            pointerPosition = value.Get<Vector2>();
+        }
+
+        // Receives raw pointer movement for drag-style interactions such as cockpit levers.
+        public void OnPointerDelta(InputValue value)
+        {
+            if (!CanAcceptInput) return;
+            pointerDelta = value.Get<Vector2>();
         }
 
         // Receives jump input and stores it for movement code to consume.
@@ -149,7 +174,7 @@ namespace StarterAssets
         public void OnRightClick(InputValue value)
         {
             if (!CanAcceptInput || !value.isPressed) return;
-            OnMouseClick?.Invoke("Right Click");
+            OnMouseClick?.Invoke(InventoryMouseButton.Right);
         }
 
         // Selects hotbar slot 1; Unity calls this when the Hotbar1 action fires.
@@ -194,6 +219,7 @@ namespace StarterAssets
                 return;
 
             bool isOpen = inventoryToggleManager.GetIsOpen();
+
             if (isOpen && !inventoryController.SelectedItemIsNull())
             {
                 bool success = inventoryController.CancelPickupItem();

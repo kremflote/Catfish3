@@ -5,7 +5,7 @@ public class PilotingState : LocomotionState
 {
     private readonly BoatController bController;
 
-    public PilotingState(BoatController bController, InventoryToggleManager inventoryToggleManager, FirstPersonController firstPersonController, SelectionManager selectionManager)
+    public PilotingState(BoatController bController, FirstPersonController firstPersonController, SelectionManager selectionManager)
         : base(firstPersonController, selectionManager)
     {
         this.bController = bController;
@@ -15,7 +15,12 @@ public class PilotingState : LocomotionState
     {
         base.Enter();
         // The boat reads the same input object as the player while piloting.
-        bController._input = pController._input;
+        bController.BeginPiloting(pController.Input);
+    }
+
+    public override void Exit()
+    {
+        bController.EndPiloting();
     }
 
     protected override void UpdateLocomotion()

@@ -32,8 +32,8 @@ public class HotbarController : MonoBehaviour
         if (itemGrid == null)
         {
             Transform canvas = player.GetComponentInChildren<Canvas>(true)?.transform;
-            Transform hotbar = canvas != null ? canvas.Find("hotbar") : null;
-            Transform greyGrid = hotbar != null ? hotbar.Find("GreyGrid") : null;
+            Transform hotbar = FindDescendantByName(canvas, "hotbar");
+            Transform greyGrid = FindDescendantByName(hotbar, "GreyGrid");
             itemGrid = greyGrid != null ? greyGrid.GetComponent<ItemGrid>() : null;
         }
 
@@ -62,6 +62,9 @@ public class HotbarController : MonoBehaviour
     private void HandleHotbarKeyPress(int index)
     {
         if (singleHighlighter == null || equipmentManager == null)
+            return;
+
+        if (index < 0 || index >= width)
             return;
 
         selectedIndex = index;
@@ -101,6 +104,9 @@ public class HotbarController : MonoBehaviour
     }
     public void SetInventoryItemSlot(InventoryItem item, int x, int y)
     {
+        if (hotbarItems == null || x < 0 || x >= hotbarItems.GetLength(0) || y < 0 || y >= hotbarItems.GetLength(1))
+            return;
+
         if (item == null)
         {
             hotbarItems[x, y] = null;
@@ -134,10 +140,11 @@ public class HotbarController : MonoBehaviour
         // Clear the entire inventory row first
         for (int i = 0; i < inventoryWidth; i++)
         {
-            if (itemGrid.inventoryItemSlot[i, targetRow] != null) {
-                if (itemGrid.inventoryItemSlot[i, targetRow].Height == 1) // dont delete items that are too high to get added to inventory
+            InventoryItem existingItem = itemGrid.inventoryItemSlot[i, targetRow];
+            if (existingItem != null) {
+                if (existingItem.Height == 1) // dont delete items that are too high to get added to inventory
                 {
-                    itemGrid.ClearSlot(i, targetRow);
+                    itemGrid.ClearItem(existingItem);
                 }
             }
         }
@@ -154,7 +161,6 @@ public class HotbarController : MonoBehaviour
                 if (itemGrid.PositionCheck(hotbarColumn, targetRow, itemWidth, item.Height))
                 {
                     itemGrid.PlaceItem(item, hotbarColumn, targetRow);
-                    Debug.Log($"Placed item '{item.itemData.name}' at ({hotbarColumn}, {targetRow})");
                 }
                 else
                 {
@@ -185,6 +191,20 @@ public class HotbarController : MonoBehaviour
     {
         if (playerInputState != null)
             playerInputState.OnHotbarKeyPressed -= HandleHotbarKeyPress;
+    }
+
+    private Transform FindDescendantByName(Transform root, string childName)
+    {
+        if (root == null)
+            return null;
+
+        foreach (Transform child in root.GetComponentsInChildren<Transform>(true))
+        {
+            if (child.name == childName)
+                return child;
+        }
+
+        return null;
     }
 
 }

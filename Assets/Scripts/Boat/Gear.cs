@@ -1,4 +1,5 @@
 using FishNet.Object;
+using FishNet.Connection;
 using UnityEngine;
 
 public class Gear : MovableObject
@@ -25,9 +26,13 @@ public class Gear : MovableObject
     float mouseSensitivity = 0.0007f;
 
     public bool moved = false; // used to check if lever has been moved by player
+    [SerializeField] private Boat boat;
 
     private void Start()
     {
+        if (boat == null)
+            boat = GetComponentInParent<Boat>();
+
         basePosition = transform.localPosition;
         currentGear = GearState.Neutral;
         lastGear = currentGear;
@@ -97,7 +102,6 @@ public class Gear : MovableObject
             ChangeGear(GearState.Neutral);
         }
 
-        Debug.Log($"Current Gear: {currentGear}, Position: {transform.localPosition}");
     }
     public void MoveLeverToTarget()
     {
@@ -140,6 +144,14 @@ public class Gear : MovableObject
     }
     public void Move(float mouseDeltaY)
     {
+        Move(mouseDeltaY, -1);
+    }
+
+    public void Move(float mouseDeltaY, int pilotClientId)
+    {
+        if (!CanPilotMove(pilotClientId))
+            return;
+
         if (IsServerInitialized)
         {
             MoveLocal(mouseDeltaY);
@@ -150,14 +162,23 @@ public class Gear : MovableObject
         MoveLocal(mouseDeltaY);
 
         if (IsClientInitialized)
-            MoveServerRpc(mouseDeltaY);
+            MoveServerRpc(mouseDeltaY, pilotClientId);
     }
 
     [ServerRpc(RequireOwnership = false)]
-    private void MoveServerRpc(float mouseDeltaY)
+    private void MoveServerRpc(float mouseDeltaY, int pilotClientId, NetworkConnection conn = null)
     {
+        int requesterId = conn != null && conn.IsValid ? conn.ClientId : pilotClientId;
+        if (!CanPilotMove(requesterId))
+            return;
+
         MoveLocal(mouseDeltaY);
         SyncGearObserversRpc(transform.localPosition, currentGear, moved);
+    }
+
+    private bool CanPilotMove(int pilotClientId)
+    {
+        return boat == null || boat.IsPilot(pilotClientId);
     }
 
     [ObserversRpc(ExcludeServer = true)]

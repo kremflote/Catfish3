@@ -236,10 +236,10 @@ MonoBehaviour:
   CinemachineCameraTarget: {fileID: 4135013735270702863}
   TopClamp: 89
   BottomClamp: -89
-  InventoryToggleManager: {fileID: 0}
-  _playerInput: {fileID: 0}
-  _controller: {fileID: 0}
-  StateMachine: {fileID: 0}
+  playerContext: {fileID: 0}
+  mainCameraObject: {fileID: 0}
+  inventoryToggleManager: {fileID: 0}
+  stateMachine: {fileID: 0}
   selectionManager: {fileID: 0}
 --- !u!114 &1978471637655604388
 MonoBehaviour:
@@ -281,6 +281,8 @@ MonoBehaviour:
   clickHeld: 0
   clickPressedThisFrame: 0
   clickReleasedThisFrame: 0
+  pointerPosition: {x: 0, y: 0}
+  pointerDelta: {x: 0, y: 0}
   inventoryToggleManager: {fileID: 0}
   inventoryController: {fileID: 0}
   selectionManager: {fileID: 0}

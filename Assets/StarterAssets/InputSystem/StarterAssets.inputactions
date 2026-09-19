@@ -184,6 +184,24 @@
           "processors": "",
           "interactions": "",
           "initialStateCheck": false
+        },
+        {
+          "name": "PointerPosition",
+          "type": "PassThrough",
+          "id": "11111111-8b8c-4a24-8f8e-3bc2d6a1c001",
+          "expectedControlType": "Vector2",
+          "processors": "",
+          "interactions": "",
+          "initialStateCheck": true
+        },
+        {
+          "name": "PointerDelta",
+          "type": "PassThrough",
+          "id": "11111111-8b8c-4a24-8f8e-3bc2d6a1c002",
+          "expectedControlType": "Vector2",
+          "processors": "",
+          "interactions": "",
+          "initialStateCheck": false
         }
       ],
       "bindings": [
@@ -536,6 +554,28 @@
           "processors": "",
           "groups": "KeyboardMouse",
           "action": "RightClick",
+          "isComposite": false,
+          "isPartOfComposite": false
+        },
+        {
+          "name": "",
+          "id": "11111111-8b8c-4a24-8f8e-3bc2d6a1b001",
+          "path": "<Pointer>/position",
+          "interactions": "",
+          "processors": "",
+          "groups": "KeyboardMouse",
+          "action": "PointerPosition",
+          "isComposite": false,
+          "isPartOfComposite": false
+        },
+        {
+          "name": "",
+          "id": "11111111-8b8c-4a24-8f8e-3bc2d6a1b002",
+          "path": "<Pointer>/delta",
+          "interactions": "",
+          "processors": "",
+          "groups": "KeyboardMouse",
+          "action": "PointerDelta",
           "isComposite": false,
           "isPartOfComposite": false
         }

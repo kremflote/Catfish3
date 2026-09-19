@@ -1,38 +1,26 @@
 using UnityEngine;
 using StarterAssets;
-using UnityEngine.InputSystem;
 using FishNet.Object;
 
 // Handles what the local player is looking at and routes interact input.
+[RequireComponent(typeof(PlayerContext))]
 public class SelectionManager : NetworkBehaviour
 {
-    public bool onTarget;
-    public GameObject selectedObject;
-    public GameObject draggingObject;
-    public PlayerInput _playerInput;
-    public PlayerInputState _input;
-    public PlayerStateMachine StateMachine;
-    public InventoryToggleManager InventoryToggleManager;
-    public FirstPersonController FirstPersonController;
-    public Camera mainCamera;
-    public float maxDistance = 5f;
+    [Header("Status")]
+    [SerializeField] private bool onTarget;
+    [SerializeField] private GameObject selectedObject;
+    [SerializeField] private GameObject draggingObject;
+
+    [Header("References")]
+    [SerializeField] private PlayerContext context;
+    [SerializeField] private float maxDistance = 5f;
+
     public bool IsUsingWorldInteraction { get; private set; }
 
     private void Start()
     {
         onTarget = false;
-
-        if (mainCamera == null)
-            mainCamera = GetComponentInChildren<Camera>(true);
-
-        if (_playerInput == null)
-            _playerInput = GetComponentInChildren<PlayerInput>(true);
-
-        if (mainCamera == null)
-            Debug.LogWarning("No Camera reference found for SelectionManager.", this);
-
-        if (_playerInput == null)
-            Debug.LogWarning("No PlayerInput reference found for SelectionManager.", this);
+        ResolveContext();
     }
 
     public void HandleSelection()
@@ -40,10 +28,10 @@ public class SelectionManager : NetworkBehaviour
         if (IsUsingWorldInteraction)
             return;
 
-        if (mainCamera == null)
+        if (context == null || context.MainCamera == null || context.Input == null)
             return;
 
-        Ray ray = mainCamera.ScreenPointToRay(Mouse.current.position.ReadValue());
+        Ray ray = context.MainCamera.ScreenPointToRay(context.Input.pointerPosition);
         RaycastHit hit;
 
         // Ignore UI/visor geometry so selection hits world objects.
@@ -72,17 +60,20 @@ public class SelectionManager : NetworkBehaviour
                 onTarget = false;
                 selectedObject = null;
             }
+            return;
         }
+
+        ClearSelection();
     }
 
-    public void OnInteract(InputValue value)
+    public void OnInteract(UnityEngine.InputSystem.InputValue value)
     {
         if (onTarget && selectedObject != null)
         {
             InteractableObject interactable = selectedObject.GetComponent<InteractableObject>();
             if (interactable != null)
             {
-                interactable.Interact(StateMachine, InventoryToggleManager, FirstPersonController, this);
+                interactable.Interact(context, this);
             }
         }
     }
@@ -109,12 +100,12 @@ public class SelectionManager : NetworkBehaviour
     {
         if (currentMovableObject is Throttle throttle)
         {
-            if (_input.clickHeld)
+            if (context.Input.clickHeld)
             {
                 IsUsingWorldInteraction = true;
-                throttle.Move(Mouse.current.delta.ReadValue().y);
+                throttle.Move(context.Input.pointerDelta.y, GetInputOwnerClientId());
             }
-            if (!_input.clickHeld)
+            if (!context.Input.clickHeld)
             {
                 currentMovableObject = null;
             }
@@ -125,7 +116,7 @@ public class SelectionManager : NetworkBehaviour
     {
         if (currentMovableObject is Gear gear)
         {
-            if (_input.clickHeld)
+            if (context.Input.clickHeld)
             {
                 // Movable cockpit controls use mouse drag instead of camera look.
                 IsUsingWorldInteraction = true;
@@ -134,10 +125,10 @@ public class SelectionManager : NetworkBehaviour
                     gearClicked = true;
                 }
 
-                gear.Move(Mouse.current.delta.ReadValue().y);
+                gear.Move(context.Input.pointerDelta.y, GetInputOwnerClientId());
 
             }
-            if (!_input.clickHeld && gearClicked)
+            if (!context.Input.clickHeld && gearClicked)
             {
                 gearClicked = false;
                 gear.UpdateGearState();
@@ -145,5 +136,34 @@ public class SelectionManager : NetworkBehaviour
                 currentMovableObject = null;
             }
         }
+    }
+
+    private void ClearSelection()
+    {
+        onTarget = false;
+        selectedObject = null;
+    }
+
+    private int GetInputOwnerClientId()
+    {
+        PlayerInputState input = context != null ? context.Input : null;
+        return input != null && input.Owner.IsValid ? input.Owner.ClientId : -1;
+    }
+
+    private void ResolveContext()
+    {
+        if (context == null)
+            context = GetComponent<PlayerContext>();
+
+        if (context == null)
+            context = gameObject.AddComponent<PlayerContext>();
+
+        context.ResolveReferences();
+
+        if (context.MainCamera == null)
+            Debug.LogWarning("No Camera reference found for SelectionManager.", this);
+
+        if (context.Input == null)
+            Debug.LogWarning("No PlayerInputState reference found for SelectionManager.", this);
     }
 }

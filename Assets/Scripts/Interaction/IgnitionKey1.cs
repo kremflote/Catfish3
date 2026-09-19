@@ -13,11 +13,11 @@ public class IgnitionKey1 : InteractableObject
 
     public BoatController BoatController;
 
-    public override void Interact(PlayerStateMachine stateMachine, InventoryToggleManager inventoryToggleManager, FirstPersonController playerController, SelectionManager selectionManager)
+    public override void Interact(PlayerContext playerContext, SelectionManager selectionManager)
     {
         Debug.Log("Interacting with Ignition Key 1");
         HandleKeyInsertion();
-        ToggleIgnition(stateMachine, inventoryToggleManager, playerController, selectionManager);
+        ToggleIgnition(playerContext, selectionManager);
     }
 
     private void HandleKeyInsertion()
@@ -55,20 +55,23 @@ public class IgnitionKey1 : InteractableObject
         return isIn;
     }
 
-    public void ToggleIgnition(PlayerStateMachine stateMachine, InventoryToggleManager inventoryToggleManager, FirstPersonController playerController, SelectionManager selectionManager)
+    public void ToggleIgnition(PlayerContext playerContext, SelectionManager selectionManager)
     {
+        if (playerContext == null || playerContext.StateMachine == null || playerContext.FirstPersonController == null)
+            return;
+
         isOn = !isOn;
 
         if (isOn)
         {
             key1.localRotation = Quaternion.Euler(0, 90, 0);
-            stateMachine.SwitchState(new MovementState(playerController));
+            playerContext.StateMachine.SwitchState(new MovementState(playerContext.FirstPersonController));
 
         }
         else
         {
             key1.localRotation = Quaternion.Euler(0, 0, 0);
-            stateMachine.SwitchState(new PilotingState(BoatController, inventoryToggleManager, playerController, selectionManager));
+            playerContext.StateMachine.SwitchState(new PilotingState(BoatController, playerContext.FirstPersonController, selectionManager));
 
         }
     }
