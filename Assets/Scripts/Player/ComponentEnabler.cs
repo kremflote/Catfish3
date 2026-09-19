@@ -53,8 +53,8 @@ public class PlayerComponentsEnabler : NetworkBehaviour
 
         if (managersGO == null)
         {
-            InputManager inputManager = GetComponentInChildren<InputManager>(true);
-            managersGO = inputManager != null ? inputManager.transform.parent.gameObject : null;
+            InventoryToggleManager inventoryToggleManager = GetComponentInChildren<InventoryToggleManager>(true);
+            managersGO = inventoryToggleManager != null ? inventoryToggleManager.transform.parent.gameObject : null;
         }
     }
     private void EnablePlayerFollowCameraComponents()
@@ -147,9 +147,6 @@ public class PlayerComponentsEnabler : NetworkBehaviour
 
         var inventoryToggleManager = managersGO.GetComponentInChildren<InventoryToggleManager>(true);
         if (inventoryToggleManager != null) inventoryToggleManager.enabled = true;
-
-        var inputManager = managersGO.GetComponentInChildren<InputManager>(true);
-        if (inputManager != null) inputManager.enabled = true;
 
         var hotbarController = managersGO.GetComponentInChildren<HotbarController>(true);
         if (hotbarController != null) hotbarController.enabled = true;

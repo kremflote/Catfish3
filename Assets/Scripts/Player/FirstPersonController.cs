@@ -9,6 +9,13 @@ using UnityEngine.InputSystem;
 
 namespace StarterAssets
 {
+    public enum PlayerInputMode
+    {
+        Gameplay,
+        Inventory,
+        WorldInteraction
+    }
+
 	[RequireComponent(typeof(CharacterController))]
 #if ENABLE_INPUT_SYSTEM
 	[RequireComponent(typeof(PlayerInput))]
@@ -58,8 +65,7 @@ namespace StarterAssets
 		[Tooltip("How far in degrees can you move the camera down")]
 		public float BottomClamp = -90.0f;
 
-		private bool mouseEnabled;
-		public bool canRotate = true;
+		private bool canRotate = true;
         private float _cinemachineTargetPitch;
 
         [Header("InventoryToggleManager")]
@@ -98,7 +104,6 @@ namespace StarterAssets
                 StateMachine.Initialize(new MovementState(this));
                 _mainCamera.SetActive(true);
 				playerCamera = _mainCamera.GetComponent<Camera>();
-                mouseEnabled = false;
                 
 #if ENABLE_INPUT_SYSTEM
                 _playerInput = GetComponent<PlayerInput>();
@@ -107,6 +112,7 @@ namespace StarterAssets
 #endif
                 _jumpTimeoutDelta = JumpTimeout;
                 _fallTimeoutDelta = FallTimeout;
+                ApplyInputMode(PlayerInputMode.Gameplay);
             }
         }
         private void InitializeComponents()
@@ -119,19 +125,29 @@ namespace StarterAssets
             _mainCamera = mainCamera.gameObject;
             _input = GetComponent<PlayerInputState>();
         }
-        public void UpdateCursorLock()
+        public void ApplyInputMode(PlayerInputMode mode)
         {
-            // Inventory owns the cursor while open; gameplay owns it otherwise.
-            if (InventoryToggleManager.GetIsOpen() == true)
+            switch (mode)
             {
-                mouseEnabled = true;
-                Cursor.lockState = CursorLockMode.None;
+                case PlayerInputMode.Inventory:
+                    ApplyInputSettings(cursorLocked: false, lookEnabled: false, interactEnabled: false, rotationEnabled: false);
+                    break;
+                case PlayerInputMode.WorldInteraction:
+                    ApplyInputSettings(cursorLocked: true, lookEnabled: false, interactEnabled: true, rotationEnabled: false);
+                    break;
+                default:
+                    ApplyInputSettings(cursorLocked: true, lookEnabled: true, interactEnabled: true, rotationEnabled: true);
+                    break;
             }
-            else
-            {
-                mouseEnabled = false;
-                Cursor.lockState = CursorLockMode.Locked;
-            }
+        }
+
+        private void ApplyInputSettings(bool cursorLocked, bool lookEnabled, bool interactEnabled, bool rotationEnabled)
+        {
+            Cursor.lockState = cursorLocked ? CursorLockMode.Locked : CursorLockMode.None;
+            Cursor.visible = !cursorLocked;
+            canRotate = rotationEnabled;
+            _input.SetLookInputEnabled(lookEnabled);
+            _input.SetInteractInputEnabled(interactEnabled);
         }
         public void UpdatePlayerParent()
         {

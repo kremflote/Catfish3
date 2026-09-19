@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using StarterAssets;
 
 public class InventoryToggleManager : MonoBehaviour
 {
@@ -7,22 +8,22 @@ public class InventoryToggleManager : MonoBehaviour
     public List<GameObject> playerHUDs = new List<GameObject>();
     private bool isOpen = false;
     private bool isHUDVisible = true;
-    [SerializeField] private InputManager inputManager;
+    [SerializeField] private PlayerInputState playerInputState;
 
 
     void OnEnable()
     {
-        if (inputManager == null)
+        if (playerInputState == null)
             InitializeReferences();
 
-        if (inputManager != null)
-            inputManager.OnTabPressed += ToggleInventory;
+        if (playerInputState != null)
+            playerInputState.OnTabPressed += ToggleInventory;
     }
 
     void OnDisable()
     {
-        if (inputManager != null)
-            inputManager.OnTabPressed -= ToggleInventory;
+        if (playerInputState != null)
+            playerInputState.OnTabPressed -= ToggleInventory;
     }
 
     public bool GetIsOpen()
@@ -37,11 +38,11 @@ public class InventoryToggleManager : MonoBehaviour
 
     private void InitializeReferences()
     {
-        if (inputManager == null)
-            inputManager = transform.root.GetComponentInChildren<InputManager>(true);
+        if (playerInputState == null)
+            playerInputState = transform.root.GetComponentInChildren<PlayerInputState>(true);
 
-        if (inputManager == null)
-            Debug.LogWarning("InputManager reference is missing.", this);
+        if (playerInputState == null)
+            Debug.LogWarning("PlayerInputState reference is missing.", this);
     }
 
     void ToggleInventory()

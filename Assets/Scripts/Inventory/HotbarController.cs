@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using static ItemGrid;
+using StarterAssets;
 
 public class HotbarController : MonoBehaviour
 {
-    [SerializeField] private InputManager inputManager;
+    [SerializeField] private PlayerInputState playerInputState;
     [SerializeField] private ItemGrid itemGrid;
     [SerializeField] private SingleHighlighter singleHighlighter;
     [SerializeField] private EquipmentManager equipmentManager;
@@ -36,8 +37,8 @@ public class HotbarController : MonoBehaviour
             itemGrid = greyGrid != null ? greyGrid.GetComponent<ItemGrid>() : null;
         }
 
-        if (inputManager == null)
-            inputManager = player.GetComponentInChildren<InputManager>(true);
+        if (playerInputState == null)
+            playerInputState = player.GetComponentInChildren<PlayerInputState>(true);
 
         if (itemGrid == null)
         {
@@ -49,10 +50,10 @@ public class HotbarController : MonoBehaviour
         width = itemGrid.GetGridSizeWidth();
         InitializeHotbarItemSlots();
 
-        if (inputManager != null)
-            inputManager.OnHotbarKeyPressed += HandleHotbarKeyPress;
+        if (playerInputState != null)
+            playerInputState.OnHotbarKeyPressed += HandleHotbarKeyPress;
         else
-            Debug.LogWarning("InputManager reference is missing.", this);
+            Debug.LogWarning("PlayerInputState reference is missing.", this);
     }
     public void InitializeHotbarItemSlots()
     {
@@ -182,8 +183,8 @@ public class HotbarController : MonoBehaviour
     public int GetSelectedIndex() => selectedIndex;
     private void OnDestroy()
     {
-        if (inputManager != null)
-            inputManager.OnHotbarKeyPressed -= HandleHotbarKeyPress;
+        if (playerInputState != null)
+            playerInputState.OnHotbarKeyPressed -= HandleHotbarKeyPress;
     }
 
 }

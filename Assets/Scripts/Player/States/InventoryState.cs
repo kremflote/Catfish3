@@ -12,7 +12,7 @@ public class InventoryState : PlayerState
 
     public override void Enter()
     {
-        pController.UpdateCursorLock();
+        pController.ApplyInputMode(PlayerInputMode.Inventory);
     }
 
     public override void Update()
@@ -23,6 +23,6 @@ public class InventoryState : PlayerState
             return;
         }
 
-        pController.UpdateCursorLock();
+        pController.ApplyInputMode(PlayerInputMode.Inventory);
     }
 }

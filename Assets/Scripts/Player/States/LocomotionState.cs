@@ -24,8 +24,15 @@ public abstract class LocomotionState : PlayerState
         UpdateInventoryOverlay();
         pController.UpdatePlayerParent();
         UpdateLocomotion();
-        pController.UpdateCursorLock();
+
+        if (pController.StateMachine.CurrentOverlayState is InventoryState)
+        {
+            pController.ApplyInputMode(PlayerInputMode.Inventory);
+            return;
+        }
+
         UpdateSelection();
+        ApplyLocomotionInputMode();
     }
 
     public override void LateUpdate()
@@ -41,6 +48,15 @@ public abstract class LocomotionState : PlayerState
     protected virtual void UpdateSelection()
     {
         selectionManager?.HandleSelection();
+    }
+
+    protected virtual void ApplyLocomotionInputMode()
+    {
+        PlayerInputMode mode = selectionManager != null && selectionManager.IsUsingWorldInteraction
+            ? PlayerInputMode.WorldInteraction
+            : PlayerInputMode.Gameplay;
+
+        pController.ApplyInputMode(mode);
     }
 
     private void UpdateInventoryOverlay()

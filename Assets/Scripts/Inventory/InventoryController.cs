@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using static ItemGrid;
+using StarterAssets;
 
 public class InventoryController : MonoBehaviour
 {
@@ -19,7 +20,7 @@ public class InventoryController : MonoBehaviour
     private InventoryItem highlightItem;
     private SingleHighlighter inventoryHighlight;
     private RectTransform rectTransform;
-    [SerializeField] private InputManager inputManager;
+    [SerializeField] private PlayerInputState playerInputState;
     [SerializeField] private InventoryToggleManager inventoryToggleManager;
     [SerializeField] private HotbarController hotbarController;
     [SerializeField] private MultipleHighlighter inventoryHotbarHighlight;
@@ -41,27 +42,27 @@ public class InventoryController : MonoBehaviour
 
     void OnEnable()
     {
-        if (inputManager == null)
-            inputManager = transform.root.GetComponentInChildren<InputManager>(true);
+        if (playerInputState == null)
+            playerInputState = transform.root.GetComponentInChildren<PlayerInputState>(true);
 
-        if (inputManager == null)
+        if (playerInputState == null)
             return;
 
-        inputManager.OnQPressed += HandleCreateRandomItem;
-        inputManager.OnTPressed += HandleInsertAll;
-        inputManager.OnUPressed += HandleInsertRandom;
-        inputManager.OnMouseClick += HandleMouseClick;
+        playerInputState.OnQPressed += HandleCreateRandomItem;
+        playerInputState.OnTPressed += HandleInsertAll;
+        playerInputState.OnUPressed += HandleInsertRandom;
+        playerInputState.OnMouseClick += HandleMouseClick;
     }
 
     void OnDisable()
     {
-        if (inputManager == null)
+        if (playerInputState == null)
             return;
 
-        inputManager.OnQPressed -= HandleCreateRandomItem;
-        inputManager.OnTPressed -= HandleInsertAll;
-        inputManager.OnUPressed -= HandleInsertRandom;
-        inputManager.OnMouseClick -= HandleMouseClick;
+        playerInputState.OnQPressed -= HandleCreateRandomItem;
+        playerInputState.OnTPressed -= HandleInsertAll;
+        playerInputState.OnUPressed -= HandleInsertRandom;
+        playerInputState.OnMouseClick -= HandleMouseClick;
     }
 
     private void HandleCreateRandomItem()
@@ -139,11 +140,11 @@ public class InventoryController : MonoBehaviour
         }
         canvasTransform = canvas;
 
-        if (inputManager == null)
-            inputManager = player.GetComponentInChildren<InputManager>(true);
+        if (playerInputState == null)
+            playerInputState = player.GetComponentInChildren<PlayerInputState>(true);
 
-        if (inputManager == null)
-            Debug.LogError("InputManager reference is missing.", this);
+        if (playerInputState == null)
+            Debug.LogError("PlayerInputState reference is missing.", this);
 
         ResolveInventoryScreens(canvas);
 

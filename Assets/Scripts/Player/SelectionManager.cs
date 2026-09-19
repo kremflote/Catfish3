@@ -1,12 +1,6 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
-using TMPro;
 using StarterAssets;
 using UnityEngine.InputSystem;
-using System.Globalization;
 using FishNet.Object;
 
 // Handles what the local player is looking at and routes interact input.
@@ -22,6 +16,7 @@ public class SelectionManager : NetworkBehaviour
     public FirstPersonController FirstPersonController;
     public Camera mainCamera;
     public float maxDistance = 5f;
+    public bool IsUsingWorldInteraction { get; private set; }
 
     private void Start()
     {
@@ -42,6 +37,9 @@ public class SelectionManager : NetworkBehaviour
 
     public void HandleSelection()
     {
+        if (IsUsingWorldInteraction)
+            return;
+
         if (mainCamera == null)
             return;
 
@@ -89,10 +87,6 @@ public class SelectionManager : NetworkBehaviour
         }
     }
 
-    private Vector2 previousMousePosition;
-    private Vector2 currentMousePosition;
-    private int frameCounter = 0;
-    private int frameDelay = 5;
     private bool gearClicked = false;
     private MovableObject currentMovableObject;
     public void CheckMovableObject()
@@ -100,13 +94,13 @@ public class SelectionManager : NetworkBehaviour
         if (onTarget && selectedObject != null)
         {
             MovableObject movableObject = selectedObject.GetComponent<MovableObject>();
-            currentMousePosition = Vector2.zero;
             currentMovableObject = movableObject;
         }
     }
 
     public void HandleMovableObject()
     {
+        IsUsingWorldInteraction = false;
         HandleGear();
         HandleThrottle();
     }
@@ -117,12 +111,11 @@ public class SelectionManager : NetworkBehaviour
         {
             if (_input.clickHeld)
             {
-                FirstPersonController.canRotate = false;
+                IsUsingWorldInteraction = true;
                 throttle.Move(Mouse.current.delta.ReadValue().y);
             }
             if (!_input.clickHeld)
             {
-                FirstPersonController.canRotate = true;
                 currentMovableObject = null;
             }
         }
@@ -135,7 +128,7 @@ public class SelectionManager : NetworkBehaviour
             if (_input.clickHeld)
             {
                 // Movable cockpit controls use mouse drag instead of camera look.
-                FirstPersonController.canRotate = false;
+                IsUsingWorldInteraction = true;
                 if (!gearClicked)
                 {
                     gearClicked = true;
@@ -146,7 +139,6 @@ public class SelectionManager : NetworkBehaviour
             }
             if (!_input.clickHeld && gearClicked)
             {
-                FirstPersonController.canRotate = true;
                 gearClicked = false;
                 gear.UpdateGearState();
                 gear.moved = true;
