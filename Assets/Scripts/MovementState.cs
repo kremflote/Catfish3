@@ -1,50 +1,17 @@
 using StarterAssets;
 
-public class MovementState : PlayerState
+// Normal on-foot movement.
+public class MovementState : LocomotionState
 {
-
-    private SelectionManager selectionManager;
-    public MovementState(FirstPersonController controller)
+    public MovementState(FirstPersonController controller) : base(controller)
     {
-        pController = controller;
-        selectionManager = controller.selectionManager;
-
-        if (selectionManager == null)
-        {
-
-        }
     }
 
-    private FirstPersonController pController;
-
-    public override void Update()
+    protected override void UpdateLocomotion()
     {
-        pController.UpdatePlayerParent();
-
         pController.GroundedCheck();
         pController.JumpAndGravity();
         pController.Move();
-        pController.UpdateCursorLock();
-        
-        selectionManager.HandleSelection();
-    }
-
-    public override void LateUpdate()
-    {
-        if (!pController.InventoryToggleManager.GetIsOpen())
-            pController.CameraRotation();
-    }
-
-    public override void Enter()
-    {
-        if (!pController.enabled)
-            pController.enabled = true;
-    }
-
-    public override void Exit()
-    {
-        // move player to pilot position
-        // disable controller
     }
 
 }

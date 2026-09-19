@@ -1,8 +1,7 @@
-using System;
-using FishNet.Object;
 using StarterAssets;
 using UnityEngine;
 
+// Interactable key that swaps the local player between walking and piloting.
 public class IgnitionKey1 : InteractableObject
 {
     public bool isOn = false;
@@ -36,7 +35,7 @@ public class IgnitionKey1 : InteractableObject
 
     private bool TryInsertKey()
     {
-        return true; // This method can be expanded to include logic for checking if the key can be inserted
+        return true;
     }
 
     public void InsertKey()
@@ -62,16 +61,14 @@ public class IgnitionKey1 : InteractableObject
 
         if (isOn)
         {
-            // Rotate the key back to the "off" position
             key1.localRotation = Quaternion.Euler(0, 90, 0);
-            stateMachine.SwitchState(new MovementState(playerController)); // endre tilbake til vanlig movement state n�r player skrur n�kkelen av
+            stateMachine.SwitchState(new MovementState(playerController));
 
         }
         else
         {
-            // Rotate the key to the "on" position
             key1.localRotation = Quaternion.Euler(0, 0, 0);
-            stateMachine.SwitchState(new PilotingState(BoatController, inventoryToggleManager, playerController, selectionManager)); // Viktig linje. Den sender b�tens kontroller til spillerens state machine som setter han i pilotmode til b�ten. Konsulter drawio filen for visualisering
+            stateMachine.SwitchState(new PilotingState(BoatController, inventoryToggleManager, playerController, selectionManager));
 
         }
     }

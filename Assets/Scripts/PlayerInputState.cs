@@ -1,19 +1,14 @@
-﻿using UnityEngine;
+using UnityEngine;
 #if ENABLE_INPUT_SYSTEM
 using UnityEngine.InputSystem;
 #endif
 using FishNet.Object;
-using FishNet.Connection;
-using Unity.VisualScripting;
 
 namespace StarterAssets
 {   
-    public class StarterAssetsInputs : NetworkBehaviour
+    // Owner-side input cache used by player, selection, and boat control code.
+    public class PlayerInputState : NetworkBehaviour
     {
-        // Dette scriptet leser input fra unity sitt input system
-        // Deretter setter den current input som egne instance variabler, effectively exposing them
-        // Deretter kan andre scripts accessere user input ved å ha en instance av dette scriptet
-
         [Header("Character Input Values")]
         public Vector2 move;
         public Vector2 look;
@@ -67,12 +62,12 @@ namespace StarterAssets
         {
             if (clickAction.WasPressedThisFrame())
             {
-                clickHeld = true; // mouse is clicked but not released
+                clickHeld = true;
             }
 
             if (clickAction.WasReleasedThisFrame())
             {
-                clickHeld = false; // mouse click is released
+                clickHeld = false;
             }
         }
 

@@ -110,8 +110,8 @@ public class PlayerComponentsEnabler : NetworkBehaviour
         var basicRigidBodyPush = playerCapsuleGO.GetComponent<BasicRigidBodyPush>();
         if (basicRigidBodyPush != null) basicRigidBodyPush.enabled = true;
 
-        var starterAssetsInputs = playerCapsuleGO.GetComponent<StarterAssetsInputs>();
-        if (starterAssetsInputs != null) starterAssetsInputs.enabled = true;
+        var playerInputState = playerCapsuleGO.GetComponent<PlayerInputState>();
+        if (playerInputState != null) playerInputState.enabled = true;
     }
 
     private void EnablePlayerComponents()

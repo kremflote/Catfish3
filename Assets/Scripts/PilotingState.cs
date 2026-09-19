@@ -1,53 +1,32 @@
 using StarterAssets;
 
-public class PilotingState : PlayerState
+// Boat-control movement while the player remains the local input source.
+public class PilotingState : LocomotionState
 {
-    // Denne klassen har en konstruktør som tar inn en BoatController fra IgnitionKey GameObject.
-    // Den passeres da til spilleren når det opprettes PilotingState i IgnitionKey1 script.
-    // MAO når spilleren vrir nøkkelen i båten, får hen dens controller og går i piloting state.
+    private readonly BoatController bController;
 
-
-    private FirstPersonController pController;
-    private BoatController bController;
-    private InventoryToggleManager inventoryToggleManager;
-    private SelectionManager selectionManager;
     public PilotingState(BoatController bController, InventoryToggleManager inventoryToggleManager, FirstPersonController firstPersonController, SelectionManager selectionManager)
+        : base(firstPersonController, selectionManager)
     {
-        this.pController = firstPersonController;
         this.bController = bController;
-        this.inventoryToggleManager = inventoryToggleManager;
-        this.selectionManager = selectionManager;
-    }
-
-    public override void Update()
-    {
-        pController.UpdatePlayerParent();
-        bController.Steer();
-        pController.UpdateCursorLock();
-        selectionManager.HandleSelection();
-        selectionManager.CheckMovableObject();
-        selectionManager.HandleMovableObject();
-    }
-
-    public override void LateUpdate()
-    {
-        if (!inventoryToggleManager.GetIsOpen())
-            
-            pController.CameraRotation();
     }
 
     public override void Enter()
     {
-        // give boatcontroller starterassetinputs
+        base.Enter();
+        // The boat reads the same input object as the player while piloting.
         bController._input = pController._input;
-
-
-        // pController.PilotMode(bController.GetPilotPosition());
-        // move to pilot position
     }
 
-    public override void Exit()
+    protected override void UpdateLocomotion()
     {
+        bController.Steer();
+    }
 
+    protected override void UpdateSelection()
+    {
+        base.UpdateSelection();
+        selectionManager?.CheckMovableObject();
+        selectionManager?.HandleMovableObject();
     }
 }

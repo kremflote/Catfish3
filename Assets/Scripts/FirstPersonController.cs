@@ -1,9 +1,5 @@
-﻿using FishNet.Object;
-using FishNet.Connection;
+using FishNet.Object;
 using UnityEngine;
-using System;
-using UnityEngine.InputSystem.XR;
-using FishNet.Example.ColliderRollbacks;
 
 
 
@@ -19,9 +15,7 @@ namespace StarterAssets
 #endif
 	public class FirstPersonController : NetworkBehaviour
 	{
-		// unity template som fikser first-person movement- og kamera
-		// jeg har lagt til slik at den også håndterer movement når player åpner inventory
-		// dette bør delegeres til en annen klasse senere kanskje
+		// Owner-side controller for body movement, camera rotation, and player references.
 
 		
 		[Header("Player")]
@@ -65,10 +59,7 @@ namespace StarterAssets
 		public float BottomClamp = -90.0f;
 
 		private bool mouseEnabled;
-		public bool canRotate = true; // if false, player can not rotate camera or move
-
-
-        // cinemachine
+		public bool canRotate = true;
         private float _cinemachineTargetPitch;
 
         [Header("InventoryToggleManager")]
@@ -76,13 +67,10 @@ namespace StarterAssets
         public InventoryToggleManager InventoryToggleManager;
 
         [Header("Player")]
-        // player
         private float _speed;
 		private float _rotationVelocity;
 		private float _verticalVelocity;
 		private float _terminalVelocity = 53.0f;
-
-        // timeout deltatime
         private float _jumpTimeoutDelta;
 		private float _fallTimeoutDelta;
 
@@ -92,22 +80,22 @@ namespace StarterAssets
 #endif
         public CharacterController _controller;
 		public PlayerStateMachine StateMachine;
-        public StarterAssetsInputs _input {get; set; }
+        public PlayerInputState _input {get; set; }
 		public SelectionManager selectionManager; 
 		private GameObject _mainCamera;
-        private Camera playerCamera; // scriptet bruker cinemachine for vanlig camera håndtering, denne variablen trengs for pilotmode
+        private Camera playerCamera;
         private const float _threshold = 0.01f;
 
 		public override void OnStartClient()
 		{
             base.OnStartClient();
 
-            StateMachine.Initialize(new MovementState(this));
             _controller = GetComponent<CharacterController>();
 
             if (base.IsOwner)
             {
                 InitializeComponents();
+                StateMachine.Initialize(new MovementState(this));
                 _mainCamera.SetActive(true);
 				playerCamera = _mainCamera.GetComponent<Camera>();
                 mouseEnabled = false;
@@ -117,7 +105,6 @@ namespace StarterAssets
 #else
 			Debug.LogError( "Starter Assets package is missing dependencies. Please use Tools/Starter Assets/Reinstall Dependencies to fix it");
 #endif
-                // reset our timeouts on start
                 _jumpTimeoutDelta = JumpTimeout;
                 _fallTimeoutDelta = FallTimeout;
             }
@@ -130,10 +117,11 @@ namespace StarterAssets
             Transform inventoryToggleManagerGO = managers.Find("InventoryToggleManager");
             InventoryToggleManager = inventoryToggleManagerGO.GetComponent<InventoryToggleManager>();
             _mainCamera = mainCamera.gameObject;
-            _input = GetComponent<StarterAssetsInputs>();
+            _input = GetComponent<PlayerInputState>();
         }
         public void UpdateCursorLock()
         {
+            // Inventory owns the cursor while open; gameplay owns it otherwise.
             if (InventoryToggleManager.GetIsOpen() == true)
             {
                 mouseEnabled = true;
@@ -145,10 +133,9 @@ namespace StarterAssets
                 Cursor.lockState = CursorLockMode.Locked;
             }
         }
-
-        // parents player to the boat root if it is on a boat and unparents if not
         public void UpdatePlayerParent()
         {
+            // Keep the player root attached to a boat while standing on it.
             Transform playerRootTransform = transform.parent;
 
             float rayDistance = 5f;
@@ -161,25 +148,21 @@ namespace StarterAssets
 
                 while (current != null)
                 {
-                    // Check if this GameObject has a child named "ModifiedBoat"
                     Transform modifiedBoat = current.Find("modifiedboat");
                     if (modifiedBoat != null)
                     {
 						Debug.Log("Found modifiedboat in: " + current.name);
-                        playerRootTransform.SetParent(current); // Parent to the boat root
+                        playerRootTransform.SetParent(current);
                         return;
                     }
 
-                    current = current.parent; // Walk up the hierarchy
+                    current = current.parent;
                 }
             }
-
-            // No valid boat found below — unparent
             playerRootTransform.SetParent(null);
         }
         public void GroundedCheck()
 		{
-			// set sphere position, with offset
 			Vector3 spherePosition = new Vector3(transform.position.x, transform.position.y - GroundedOffset, transform.position.z);
 			Grounded = Physics.CheckSphere(spherePosition, GroundedRadius, GroundLayers, QueryTriggerInteraction.Ignore);
 		}
@@ -187,93 +170,55 @@ namespace StarterAssets
 		{
 			if (!canRotate)
             { return; }
-
-			// if there is an input
 			if (_input.look.sqrMagnitude >= _threshold)
 			{
-				//Don't multiply mouse input by Time.deltaTime
 				float deltaTimeMultiplier = IsCurrentDeviceMouse ? 1.0f : Time.deltaTime;
 				
 				_cinemachineTargetPitch += _input.look.y * RotationSpeed * deltaTimeMultiplier;
 				_rotationVelocity = _input.look.x * RotationSpeed * deltaTimeMultiplier;
-
-				// clamp our pitch rotation
 				_cinemachineTargetPitch = ClampAngle(_cinemachineTargetPitch, BottomClamp, TopClamp);
-
-				// Update Cinemachine camera target pitch
 				CinemachineCameraTarget.transform.localRotation = Quaternion.Euler(_cinemachineTargetPitch, 0.0f, 0.0f);
-
-				// rotate the player left and right
 				transform.Rotate(Vector3.up * _rotationVelocity);
 			}
 		}
         public void Move()
 		{
-			// set target speed based on move speed, sprint speed and if sprint is pressed
+			// CharacterController movement kept from Starter Assets, used by MovementState.
 			float targetSpeed = _input.sprint ? SprintSpeed : MoveSpeed;
-
-			// a simplistic acceleration and deceleration designed to be easy to remove, replace, or iterate upon
-
-			// note: Vector2's == operator uses approximation so is not floating point error prone, and is cheaper than magnitude
-			// if there is no input, set the target speed to 0
 			if (_input.move == Vector2.zero) targetSpeed = 0.0f;
-
-			// a reference to the players current horizontal velocity
 			float currentHorizontalSpeed = new Vector3(_controller.velocity.x, 0.0f, _controller.velocity.z).magnitude;
 
 			float speedOffset = 0.1f;
 			float inputMagnitude = _input.analogMovement ? _input.move.magnitude : 1f;
-
-			// accelerate or decelerate to target speed
 			if (currentHorizontalSpeed < targetSpeed - speedOffset || currentHorizontalSpeed > targetSpeed + speedOffset)
 			{
-				// creates curved result rather than a linear one giving a more organic speed change
-				// note T in Lerp is clamped, so we don't need to clamp our speed
 				_speed = Mathf.Lerp(currentHorizontalSpeed, targetSpeed * inputMagnitude, Time.deltaTime * SpeedChangeRate);
-
-				// round speed to 3 decimal places
 				_speed = Mathf.Round(_speed * 1000f) / 1000f;
 			}
 			else
 			{
 				_speed = targetSpeed;
 			}
-
-			// normalise input direction
 			Vector3 inputDirection = new Vector3(_input.move.x, 0.0f, _input.move.y).normalized;
-
-			// note: Vector2's != operator uses approximation so is not floating point error prone, and is cheaper than magnitude
-			// if there is a move input rotate player when the player is moving
 			if (_input.move != Vector2.zero)
 			{
-				// move
 				inputDirection = transform.right * _input.move.x + transform.forward * _input.move.y;
 			}
-
-			// move the player
 			_controller.Move(inputDirection.normalized * (_speed * Time.deltaTime) + new Vector3(0.0f, _verticalVelocity, 0.0f) * Time.deltaTime);
 		}
         public void JumpAndGravity()
 		{
 			if (Grounded)
 			{
-				// reset the fall timeout timer
 				_fallTimeoutDelta = FallTimeout;
-
-				// stop our velocity dropping infinitely when grounded
 				if (_verticalVelocity < 0.0f)
 				{
 					_verticalVelocity = -2f;
 				}
-
-				// Jump
 				if (_input.jump && _jumpTimeoutDelta <= 0.0f)
 				{
-					// the square root of H * -2 * G = how much velocity needed to reach desired height
 					_verticalVelocity = Mathf.Sqrt(JumpHeight * -2f * Gravity);
 				}
-
-				// jump timeout
 				if (_jumpTimeoutDelta >= 0.0f)
 				{
 					_jumpTimeoutDelta -= Time.deltaTime;
@@ -281,20 +226,13 @@ namespace StarterAssets
 			}
 			else
 			{
-				// reset the jump timeout timer
 				_jumpTimeoutDelta = JumpTimeout;
-
-				// fall timeout
 				if (_fallTimeoutDelta >= 0.0f)
 				{
 					_fallTimeoutDelta -= Time.deltaTime;
 				}
-
-				// if we are not grounded, do not jump
 				_input.jump = false;
 			}
-
-			// apply gravity over time if under terminal (multiply by delta time twice to linearly speed up over time)
 			if (_verticalVelocity < _terminalVelocity)
 			{
 				_verticalVelocity += Gravity * Time.deltaTime;
@@ -313,8 +251,6 @@ namespace StarterAssets
 
 			if (Grounded) Gizmos.color = transparentGreen;
 			else Gizmos.color = transparentRed;
-
-			// when selected, draw a gizmo in the position of, and matching radius of, the grounded collider
 			Gizmos.DrawSphere(new Vector3(transform.position.x, transform.position.y - GroundedOffset, transform.position.z), GroundedRadius);
 		}
         private bool IsCurrentDeviceMouse

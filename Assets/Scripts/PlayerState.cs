@@ -1,6 +1,4 @@
-using StarterAssets;
-using UnityEngine;
-
+// Minimal lifecycle shared by all player states.
 public abstract class PlayerState 
 {
     public virtual void Enter() { }

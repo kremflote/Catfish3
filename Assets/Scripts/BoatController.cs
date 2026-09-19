@@ -9,7 +9,7 @@ public class BoatController : NetworkBehaviour
     // Not playermovement, that is controlled by FirstPersonController.
 
     public PlayerStateMachine stateMachine { get; private set; }
-    public StarterAssetsInputs _input { get; set; }
+    public PlayerInputState _input { get; set; }
     public InventoryToggleManager inventoryToggleManager;
     public Boat boat;
 
