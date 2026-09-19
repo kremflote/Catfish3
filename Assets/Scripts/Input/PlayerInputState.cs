@@ -21,6 +21,7 @@ namespace StarterAssets
         public Vector2 look;
         public bool jump;
         public bool sprint;
+        public bool crouch;
 
         [Header("Movement Settings")]
         public bool analogMovement;
@@ -140,6 +141,13 @@ namespace StarterAssets
         {
             if (!CanAcceptInput) return;
             SprintInput(value.isPressed);
+        }
+
+        // Receives crouch input as a hold, so release stands back up.
+        public void OnCrouch(InputValue value)
+        {
+            if (!CanAcceptInput) return;
+            CrouchInput(value.isPressed);
         }
 
         // Receives Tab from Unity input and runs the inventory open/close flow.
@@ -284,6 +292,12 @@ namespace StarterAssets
         public void SprintInput(bool newSprintState)
         {
             sprint = newSprintState;
+        }
+
+        // Stores crouch state so locomotion code can decide when to shrink or restore the capsule.
+        public void CrouchInput(bool newCrouchState)
+        {
+            crouch = newCrouchState;
         }
 
         // Lets player states disable camera look, for example while inventory is open.

@@ -35,6 +35,14 @@ namespace StarterAssets
 		[Tooltip("Acceleration and deceleration")]
 		public float SpeedChangeRate = 10.0f;
 
+        [Header("Crouch")]
+        [Tooltip("CharacterController height while crouching.")]
+        [SerializeField] private float crouchHeight = 1.2f;
+        [Tooltip("Movement speed multiplier while crouching.")]
+        [SerializeField] private float crouchSpeedMultiplier = 0.65f;
+        [Tooltip("How long the collider takes to move between standing and crouching.")]
+        [SerializeField] private float crouchTransitionDuration = 0.18f;
+
 		[Space(10)]
 		[Tooltip("The height the player can jump")]
 		public float JumpHeight = 1.2f;
@@ -50,10 +58,10 @@ namespace StarterAssets
 		[Header("Player Grounded")]
 		[Tooltip("If the character is grounded or not. Not part of the CharacterController built in grounded check")]
 		public bool Grounded = true;
-		[Tooltip("Useful for rough ground")]
-		public float GroundedOffset = -0.14f;
-		[Tooltip("The radius of the grounded check. Should match the radius of the CharacterController")]
-		public float GroundedRadius = 0.5f;
+		[Tooltip("How far below the CharacterController bottom to check for ground.")]
+		public float GroundedOffset = 0.05f;
+		[Tooltip("The grounded check radius as a multiplier of the CharacterController radius.")]
+		public float GroundedRadius = 0.35f;
 		[Tooltip("What layers the character uses as ground")]
 		public LayerMask GroundLayers;
 
@@ -92,18 +100,25 @@ namespace StarterAssets
         private Camera playerCamera;
         private PlayerInputMode currentInputMode = PlayerInputMode.Gameplay;
         private bool wantsCursorLocked = true;
+        private bool isCrouched;
+        private float standingHeight;
+        private Vector3 standingCenter;
+        private float targetColliderHeight;
+        private Vector3 targetColliderCenter;
         private const float _threshold = 0.01f;
 
         public InventoryToggleManager InventoryToggleManager => inventoryToggleManager;
         public PlayerStateMachine StateMachine => stateMachine;
         public PlayerInputState Input => _input;
         public SelectionManager SelectionManager => selectionManager;
+        public bool IsCrouched => isCrouched;
 
 		public override void OnStartClient()
 		{
             base.OnStartClient();
 
             _controller = GetComponent<CharacterController>();
+            CacheStandingCollider();
 
             if (base.IsOwner)
             {
@@ -126,6 +141,17 @@ namespace StarterAssets
                 ApplyInputMode(PlayerInputMode.Gameplay);
             }
         }
+        private void CacheStandingCollider()
+        {
+            if (_controller == null)
+                return;
+
+            standingHeight = _controller.height;
+            standingCenter = _controller.center;
+            targetColliderHeight = standingHeight;
+            targetColliderCenter = standingCenter;
+        }
+
         private void InitializeComponents()
         {
             Transform playerRoot = transform.root;
@@ -167,6 +193,34 @@ namespace StarterAssets
             if (stateMachine == null)
                 Debug.LogError("PlayerStateMachine reference is missing.", this);
         }
+        public void SetCrouched(bool shouldCrouch)
+        {
+            if (_controller == null || isCrouched == shouldCrouch)
+                return;
+
+            if (!shouldCrouch && !CanStand())
+                return;
+
+            isCrouched = shouldCrouch;
+
+            if (isCrouched)
+            {
+                float targetHeight = Mathf.Clamp(crouchHeight, _controller.radius * 2f, standingHeight);
+                targetColliderHeight = targetHeight;
+                targetColliderCenter = standingCenter + Vector3.up * ((standingHeight - targetHeight) / 2f);
+                return;
+            }
+
+            targetColliderHeight = standingHeight;
+            targetColliderCenter = standingCenter;
+        }
+
+        public bool CanStand()
+        {
+            // Crouch keeps the capsule top stable and raises the bottom, so standing only extends downward.
+            return true;
+        }
+
         public void ApplyInputMode(PlayerInputMode mode)
         {
             currentInputMode = mode;
@@ -208,7 +262,19 @@ namespace StarterAssets
             if (!IsOwner)
                 return;
 
+            UpdateCrouchTransition();
             EnsureCursorState();
+        }
+
+        private void UpdateCrouchTransition()
+        {
+            if (_controller == null)
+                return;
+
+            float duration = Mathf.Max(0.01f, crouchTransitionDuration);
+            float heightStep = Mathf.Abs(standingHeight - crouchHeight) / duration * Time.deltaTime;
+            _controller.height = Mathf.MoveTowards(_controller.height, targetColliderHeight, heightStep);
+            _controller.center = Vector3.MoveTowards(_controller.center, targetColliderCenter, heightStep);
         }
 
         private void OnApplicationFocus(bool hasFocus)
@@ -255,8 +321,17 @@ namespace StarterAssets
         }
         public void GroundedCheck()
 		{
-			Vector3 spherePosition = new Vector3(transform.position.x, transform.position.y - GroundedOffset, transform.position.z);
-			Grounded = Physics.CheckSphere(spherePosition, GroundedRadius, GroundLayers, QueryTriggerInteraction.Ignore);
+            if (_controller == null)
+            {
+                Grounded = false;
+                return;
+            }
+
+            GetCapsulePoints(_controller.height, _controller.center, out Vector3 bottom, out _, out float radius);
+            float checkRadius = Mathf.Max(0.01f, radius * GroundedRadius);
+            Vector3 footPosition = bottom - transform.up * radius;
+            Vector3 spherePosition = footPosition + transform.up * checkRadius + Vector3.down * GroundedOffset;
+			Grounded = _controller.isGrounded || Physics.CheckSphere(spherePosition, checkRadius, GroundLayers, QueryTriggerInteraction.Ignore);
 		}
         public void CameraRotation()
 		{
@@ -276,7 +351,8 @@ namespace StarterAssets
         public void Move()
 		{
 			// CharacterController movement kept from Starter Assets, used by MovementState.
-			float targetSpeed = _input.sprint ? SprintSpeed : MoveSpeed;
+			float targetSpeed = isCrouched ? MoveSpeed * crouchSpeedMultiplier : (_input.sprint ? SprintSpeed : MoveSpeed);
+
 			if (_input.move == Vector2.zero) targetSpeed = 0.0f;
 			float currentHorizontalSpeed = new Vector3(_controller.velocity.x, 0.0f, _controller.velocity.z).magnitude;
 
@@ -325,11 +401,22 @@ namespace StarterAssets
 				}
 				_input.jump = false;
 			}
-			if (_verticalVelocity < _terminalVelocity)
+			if (_verticalVelocity > -_terminalVelocity)
 			{
 				_verticalVelocity += Gravity * Time.deltaTime;
 			}
 		}
+        private void GetCapsulePoints(float height, Vector3 center, out Vector3 bottom, out Vector3 top, out float radius)
+        {
+            radius = Mathf.Max(0.01f, _controller.radius * 0.95f);
+            float halfHeight = Mathf.Max(height / 2f, radius);
+            Vector3 worldCenter = transform.TransformPoint(center);
+            Vector3 capsuleOffset = transform.up * Mathf.Max(0f, halfHeight - radius);
+
+            bottom = worldCenter - capsuleOffset;
+            top = worldCenter + capsuleOffset;
+        }
+
 		private static float ClampAngle(float lfAngle, float lfMin, float lfMax)
 		{
 			if (lfAngle < -360f) lfAngle += 360f;
@@ -343,7 +430,17 @@ namespace StarterAssets
 
 			if (Grounded) Gizmos.color = transparentGreen;
 			else Gizmos.color = transparentRed;
-			Gizmos.DrawSphere(new Vector3(transform.position.x, transform.position.y - GroundedOffset, transform.position.z), GroundedRadius);
+
+            CharacterController controller = _controller != null ? _controller : GetComponent<CharacterController>();
+            if (controller == null)
+                return;
+
+            float radius = Mathf.Max(0.01f, controller.radius * 0.95f);
+            float halfHeight = Mathf.Max(controller.height / 2f, radius);
+            Vector3 worldCenter = transform.TransformPoint(controller.center);
+            Vector3 bottom = worldCenter - transform.up * Mathf.Max(0f, halfHeight - radius);
+            Vector3 footPosition = bottom - transform.up * radius;
+			Gizmos.DrawSphere(footPosition + transform.up * (radius * GroundedRadius) + Vector3.down * GroundedOffset, radius * GroundedRadius);
 		}
         private bool IsCurrentDeviceMouse
         {

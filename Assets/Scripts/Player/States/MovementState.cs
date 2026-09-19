@@ -9,6 +9,12 @@ public class MovementState : LocomotionState
 
     protected override void UpdateLocomotion()
     {
+        if (pController.Input.crouch)
+        {
+            pController.StateMachine.SwitchLocomotionState(new CrouchState(pController));
+            return;
+        }
+
         pController.GroundedCheck();
         pController.JumpAndGravity();
         pController.Move();

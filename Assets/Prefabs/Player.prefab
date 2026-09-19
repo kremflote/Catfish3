@@ -234,13 +234,16 @@ MonoBehaviour:
   SprintSpeed: 16
   RotationSpeed: 1
   SpeedChangeRate: 10
+  crouchHeight: 1.2
+  crouchSpeedMultiplier: 0.65
+  crouchTransitionDuration: 0.18
   JumpHeight: 1.2
   Gravity: -15
   JumpTimeout: 0.1
   FallTimeout: 0.15
   Grounded: 1
-  GroundedOffset: -0.14
-  GroundedRadius: 0.5
+  GroundedOffset: 0.05
+  GroundedRadius: 0.35
   GroundLayers:
     serializedVersion: 2
     m_Bits: 1
