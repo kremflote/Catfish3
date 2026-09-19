@@ -3,11 +3,11 @@ using UnityEngine;
 
 public class InputManager : MonoBehaviour
 {
-    InventoryToggleManager inventoryToggleManager;
-    InventoryController inventoryController;
+    [SerializeField] private InventoryToggleManager inventoryToggleManager;
+    [SerializeField] private InventoryController inventoryController;
 
-    // Sentraliserte noe inputs her som ikke har å gjøre med movement
-    // bør refaktoreres til å bruke unity sitt input system smartere
+    // Sentraliserte noe inputs her som ikke har ï¿½ gjï¿½re med movement
+    // bï¿½r refaktoreres til ï¿½ bruke unity sitt input system smartere
 
 
     public event Action OnTabPressed;
@@ -24,6 +24,9 @@ public class InputManager : MonoBehaviour
 
     void Update()
     {
+        if (inventoryToggleManager == null || inventoryController == null)
+            return;
+
         if (Input.GetKeyDown(KeyCode.Tab))
             {
                 bool isOpen = inventoryToggleManager.GetIsOpen();
@@ -76,15 +79,17 @@ public class InputManager : MonoBehaviour
 
     private void InitializeInventoryComponents()
     {
-        Transform Player = transform.parent.parent;
-        Transform mainCamera = Player.Find("MainCamera");
-        inventoryController = mainCamera.GetComponent<InventoryController>();
+        if (inventoryController == null)
+            inventoryController = transform.root.GetComponentInChildren<InventoryController>(true);
 
-        Transform Managers = transform.parent;
-        GameObject inventoryToggleManagerGO = Managers.Find("InventoryToggleManager").gameObject;
-        inventoryToggleManager = inventoryToggleManagerGO.GetComponent<InventoryToggleManager>();
+        if (inventoryToggleManager == null)
+            inventoryToggleManager = transform.root.GetComponentInChildren<InventoryToggleManager>(true);
 
+        if (inventoryController == null)
+            Debug.LogWarning("InventoryController reference is missing.", this);
 
+        if (inventoryToggleManager == null)
+            Debug.LogWarning("InventoryToggleManager reference is missing.", this);
     }
     public String GetMouseInput()
     {

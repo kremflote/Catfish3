@@ -46,7 +46,8 @@ public class SingleHighlighter : MonoBehaviour
 
     public void SetParent(ItemGrid targetGrid)
     {
-        highlighter.SetParent(targetGrid.GetComponent<RectTransform>());
+        highlighter.SetParent(targetGrid.GetComponent<RectTransform>(), false);
+        highlighter.localScale = Vector3.one;
     }
 
     public void SetPosition(ItemGrid targetGrid, InventoryItem targetItem, int posX, int posY)

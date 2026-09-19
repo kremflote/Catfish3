@@ -54,6 +54,28 @@ public class Gear : MovableObject
 
     public void UpdateGearState()
     {
+        if (IsServerInitialized)
+        {
+            UpdateGearStateLocal();
+            SyncGearObserversRpc(transform.localPosition, currentGear, moved);
+            return;
+        }
+
+        UpdateGearStateLocal();
+
+        if (IsClientInitialized)
+            UpdateGearStateServerRpc();
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    private void UpdateGearStateServerRpc()
+    {
+        UpdateGearStateLocal();
+        SyncGearObserversRpc(transform.localPosition, currentGear, moved);
+    }
+
+    private void UpdateGearStateLocal()
+    {
         Vector3 leverPosition = transform.localPosition;
 
         float distToDrive = Vector3.Distance(leverPosition, drivePos);
@@ -117,6 +139,38 @@ public class Gear : MovableObject
         currentGear = state;
     }
     public void Move(float mouseDeltaY)
+    {
+        if (IsServerInitialized)
+        {
+            MoveLocal(mouseDeltaY);
+            SyncGearObserversRpc(transform.localPosition, currentGear, moved);
+            return;
+        }
+
+        MoveLocal(mouseDeltaY);
+
+        if (IsClientInitialized)
+            MoveServerRpc(mouseDeltaY);
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    private void MoveServerRpc(float mouseDeltaY)
+    {
+        MoveLocal(mouseDeltaY);
+        SyncGearObserversRpc(transform.localPosition, currentGear, moved);
+    }
+
+    [ObserversRpc(ExcludeServer = true)]
+    private void SyncGearObserversRpc(Vector3 localPosition, GearState gearState, bool isMoved)
+    {
+        transform.localPosition = localPosition;
+        currentGear = gearState;
+        lastGear = gearState;
+        moved = isMoved;
+        UpdateTargetPosition(currentGear);
+    }
+
+    private void MoveLocal(float mouseDeltaY)
     {
         Vector3 offset = transform.forward * (mouseDeltaY / 2) * mouseSensitivity;
         Vector3 newPosition = transform.localPosition + offset;

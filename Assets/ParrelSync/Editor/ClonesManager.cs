@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System;
 using System.Diagnostics;
 using UnityEngine;
 using UnityEditor;
@@ -102,10 +103,8 @@ namespace ParrelSync
 
             ClonesManager.CreateProjectFolder(cloneProject);
 
-            //Copy Folders           
-            Debug.Log("Library copy: " + cloneProject.libraryPath);
-            ClonesManager.CopyDirectoryWithProgressBar(sourceProject.libraryPath, cloneProject.libraryPath,
-                "Cloning Project Library '" + sourceProject.name + "'. ");
+            // Unity can mutate generated Library subfolders while cloning. Let clones rebuild Library on first open.
+            Debug.Log("Skipping Library copy; Unity will rebuild the clone Library on first open.");
             Debug.Log("Packages copy: " + cloneProject.packagesPath);
             ClonesManager.CopyDirectoryWithProgressBar(sourceProject.packagesPath, cloneProject.packagesPath,
               "Cloning Project Packages '" + sourceProject.name + "'. ");
@@ -567,6 +566,11 @@ namespace ParrelSync
         private static void CopyDirectoryWithProgressBarRecursive(DirectoryInfo source, DirectoryInfo destination,
             ref long totalBytes, ref long copiedBytes, string progressBarPrefix = "")
         {
+            if (!source.Exists)
+            {
+                return;
+            }
+
             /// Directory cannot be copied into itself.
             if (source.FullName.ToLower() == destination.FullName.ToLower())
             {
@@ -587,7 +591,25 @@ namespace ParrelSync
             }
 
             /// Copy all files from the source.
-            foreach (FileInfo file in source.GetFiles())
+            FileInfo[] files;
+            try
+            {
+                files = source.GetFiles();
+            }
+            catch (DirectoryNotFoundException)
+            {
+                return;
+            }
+            catch (IOException)
+            {
+                return;
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return;
+            }
+
+            foreach (FileInfo file in files)
             {
                 // Ensure file exists before continuing.
                 if (!file.Exists)
@@ -618,7 +640,25 @@ namespace ParrelSync
             }
 
             /// Copy all nested directories from the source.
-            foreach (DirectoryInfo sourceNestedDir in source.GetDirectories())
+            DirectoryInfo[] sourceNestedDirectories;
+            try
+            {
+                sourceNestedDirectories = source.GetDirectories();
+            }
+            catch (DirectoryNotFoundException)
+            {
+                return;
+            }
+            catch (IOException)
+            {
+                return;
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return;
+            }
+
+            foreach (DirectoryInfo sourceNestedDir in sourceNestedDirectories)
             {
                 DirectoryInfo nextDestingationNestedDir = destination.CreateSubdirectory(sourceNestedDir.Name);
                 ClonesManager.CopyDirectoryWithProgressBarRecursive(sourceNestedDir, nextDestingationNestedDir,
@@ -636,17 +676,57 @@ namespace ParrelSync
         private static long GetDirectorySize(DirectoryInfo directory, bool includeNested = false,
             string progressBarPrefix = "")
         {
+            if (!directory.Exists)
+            {
+                return 0;
+            }
+
             EditorUtility.DisplayProgressBar(progressBarPrefix + "Calculating size of directories...",
                 "Scanning '" + directory.FullName + "'...", 0f);
 
             /// Calculate size of all files in directory.
-            long filesSize = directory.GetFiles().Sum((FileInfo file) => file.Exists ? file.Length : 0);
+            FileInfo[] files;
+            try
+            {
+                files = directory.GetFiles();
+            }
+            catch (DirectoryNotFoundException)
+            {
+                return 0;
+            }
+            catch (IOException)
+            {
+                return 0;
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return 0;
+            }
+
+            long filesSize = files.Sum((FileInfo file) => file.Exists ? file.Length : 0);
 
             /// Calculate size of all nested directories.
             long directoriesSize = 0;
             if (includeNested)
             {
-                IEnumerable<DirectoryInfo> nestedDirectories = directory.GetDirectories();
+                DirectoryInfo[] nestedDirectories;
+                try
+                {
+                    nestedDirectories = directory.GetDirectories();
+                }
+                catch (DirectoryNotFoundException)
+                {
+                    return filesSize;
+                }
+                catch (IOException)
+                {
+                    return filesSize;
+                }
+                catch (UnauthorizedAccessException)
+                {
+                    return filesSize;
+                }
+
                 foreach (DirectoryInfo nestedDir in nestedDirectories)
                 {
                     directoriesSize += ClonesManager.GetDirectorySize(nestedDir, true, progressBarPrefix);

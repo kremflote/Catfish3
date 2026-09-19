@@ -4,23 +4,28 @@ using UnityEngine.EventSystems;
 [RequireComponent(typeof(ItemGrid))]
 
 public class GridInteract : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
-{   
-    InventoryController inventoryController;
-    ItemGrid itemGrid;
+{
+    [SerializeField] private InventoryController inventoryController;
+    private ItemGrid itemGrid;
     public bool pointerOnGrid;
 
     private void Awake()
     {
-        Transform parent = transform.parent.parent.parent;
-        Transform playerCamera = parent.Find("MainCamera");
-
         pointerOnGrid = false;
-        inventoryController = playerCamera.GetComponent<InventoryController>();
         itemGrid = GetComponent<ItemGrid>();
+
+        if (inventoryController == null)
+            inventoryController = transform.root.GetComponentInChildren<InventoryController>(true);
+
+        if (inventoryController == null)
+            Debug.LogWarning("InventoryController reference is missing.", this);
     }
 
     public void OnPointerEnter(PointerEventData eventData)
     {
+        if (inventoryController == null)
+            return;
+
         inventoryController.SetLastPlacementItemGrid(itemGrid);
         inventoryController.SetItemGrid(itemGrid);
         pointerOnGrid = true;
@@ -28,7 +33,9 @@ public class GridInteract : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
 
     public void OnPointerExit(PointerEventData eventData)
     {
-        
+        if (inventoryController == null)
+            return;
+
         inventoryController.SetItemGrid(null);
         pointerOnGrid = false;
     }

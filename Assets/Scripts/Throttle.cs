@@ -27,6 +27,36 @@ public class Throttle : MovableObject
 
     public void Move(float mouseDeltaY)
     {
+        if (IsServerInitialized)
+        {
+            MoveLocal(mouseDeltaY);
+            SyncThrottleObserversRpc(transform.localPosition, _throttleApplied, _throttleValue);
+            return;
+        }
+
+        MoveLocal(mouseDeltaY);
+
+        if (IsClientInitialized)
+            MoveServerRpc(mouseDeltaY);
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    private void MoveServerRpc(float mouseDeltaY)
+    {
+        MoveLocal(mouseDeltaY);
+        SyncThrottleObserversRpc(transform.localPosition, _throttleApplied, _throttleValue);
+    }
+
+    [ObserversRpc(ExcludeServer = true)]
+    private void SyncThrottleObserversRpc(Vector3 localPosition, float throttleApplied, float throttleValue)
+    {
+        transform.localPosition = localPosition;
+        _throttleApplied = throttleApplied;
+        _throttleValue = throttleValue;
+    }
+
+    private void MoveLocal(float mouseDeltaY)
+    {
         Vector3 offset = transform.forward * (mouseDeltaY / 2) * mouseSensitivity;
         Vector3 newPosition = transform.localPosition + offset;
 
@@ -43,9 +73,16 @@ public class Throttle : MovableObject
         // Recalculate final clamped position
         Vector3 clampedPosition = basePosition + (forwardDir * clampedDistance);
         transform.localPosition = clampedPosition;
+
+        UpdateThrottleFromLever();
     }
 
     void Update()
+    {
+        UpdateThrottleFromLever();
+    }
+
+    private void UpdateThrottleFromLever()
     {
 
         // Calculate offset from base position

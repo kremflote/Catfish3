@@ -1,7 +1,6 @@
 using UnityEngine;
 using FishNet.Object;
 using StarterAssets;
-using System;
 
 public class Boat : NetworkBehaviour, IDrivable
 {
@@ -26,6 +25,7 @@ public class Boat : NetworkBehaviour, IDrivable
     public IgnitionKey1 ignitionKey;
     public bool IgnitionOn { get; set; }
     public BoatController boatController { get; set; }
+    private float _steerInput;
 
     private void Start()
     {
@@ -39,12 +39,33 @@ public class Boat : NetworkBehaviour, IDrivable
 
     private void Update()
     {
+        if (!IsServerInitialized && IsClientInitialized)
+            return;
+
         CheckIgnition();
 
         if (!IgnitionOn)
             return;
 
         MoveBoat(); // Apllies movement to boat based on boat variables
+    }
+
+    public void SetSteeringInput(float steerInput)
+    {
+        steerInput = Mathf.Clamp(steerInput, -1f, 1f);
+
+        if (IsServerInitialized)
+            _steerInput = steerInput;
+        else if (IsClientInitialized)
+            SetSteeringInputServerRpc(steerInput);
+        else
+            _steerInput = steerInput;
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    private void SetSteeringInputServerRpc(float steerInput)
+    {
+        _steerInput = Mathf.Clamp(steerInput, -1f, 1f);
     }
 
     private void CheckIgnition()
@@ -80,7 +101,10 @@ public class Boat : NetworkBehaviour, IDrivable
         Debug.Log($"Throttle Value: {throttleForce}");
 
         // Get steering direction based on wheel angle
-        float steeringAngle = wheel.GetAngle(); // In degrees
+        if (wheel != null)
+            wheel.AddAngle(_steerInput);
+
+        float steeringAngle = wheel != null ? wheel.GetAngle() : 0f; // In degrees
         Quaternion rotation = Quaternion.Euler(0f, steeringAngle, 0f);
         Vector3 forwardDirection = rotation * transform.forward;
 

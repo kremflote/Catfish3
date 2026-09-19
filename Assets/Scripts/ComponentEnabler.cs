@@ -8,9 +8,9 @@ using System;
 
 public class PlayerComponentsEnabler : NetworkBehaviour
 {
-    // for at multiplayer skal fungere er det veldig viktig at når player prefabs spawner inn, at kun den playeren skal styre får sine components enabled
-    // mao hvis flere får feks input component enabled, vil en player kunne styre alle andre players
-    // derfor bør components i player prefabs være disabled, og bli manuelt enabled i dette scriptet.
+    // for at multiplayer skal fungere er det veldig viktig at nï¿½r player prefabs spawner inn, at kun den playeren skal styre fï¿½r sine components enabled
+    // mao hvis flere fï¿½r feks input component enabled, vil en player kunne styre alle andre players
+    // derfor bï¿½r components i player prefabs vï¿½re disabled, og bli manuelt enabled i dette scriptet.
 
 
     [SerializeField] private GameObject mainCameraGO;
@@ -27,20 +27,7 @@ public class PlayerComponentsEnabler : NetworkBehaviour
         if (!IsOwner)
             return;
 
-        if (mainCameraGO == null)
-            mainCameraGO = transform.Find("MainCamera")?.gameObject;
-
-        if (PlayerFollowCamera == null)
-            PlayerFollowCamera = transform.Find("PlayerFollowCamera")?.gameObject;
-
-        if (playerCapsuleGO == null)
-            playerCapsuleGO = transform.Find("playerCapsule")?.gameObject;
-
-        if (canvasGO == null)
-            canvasGO = transform.Find("Canvas")?.gameObject;
-
-        if (managersGO == null)
-            managersGO = transform.Find("Managers")?.gameObject;
+        ResolveReferences();
 
         EnableMainCameraComponents();
         EnablePlayerFollowCameraComponents();
@@ -50,10 +37,33 @@ public class PlayerComponentsEnabler : NetworkBehaviour
         EnablePlayerComponents();
     }
 
+    private void ResolveReferences()
+    {
+        if (mainCameraGO == null)
+            mainCameraGO = GetComponentInChildren<Camera>(true)?.gameObject;
+
+        if (PlayerFollowCamera == null)
+            PlayerFollowCamera = GetComponentInChildren<Cinemachine.CinemachineVirtualCamera>(true)?.gameObject;
+
+        if (playerCapsuleGO == null)
+            playerCapsuleGO = GetComponentInChildren<FirstPersonController>(true)?.gameObject;
+
+        if (canvasGO == null)
+            canvasGO = GetComponentInChildren<Canvas>(true)?.gameObject;
+
+        if (managersGO == null)
+        {
+            InputManager inputManager = GetComponentInChildren<InputManager>(true);
+            managersGO = inputManager != null ? inputManager.transform.parent.gameObject : null;
+        }
+    }
     private void EnablePlayerFollowCameraComponents()
     {
+        if (PlayerFollowCamera == null)
+            return;
+
         var cinemachineVirtualCamera = PlayerFollowCamera.GetComponent<Cinemachine.CinemachineVirtualCamera>();
-        cinemachineVirtualCamera.enabled = true;
+        if (cinemachineVirtualCamera != null) cinemachineVirtualCamera.enabled = true;
     }
 
     private void EnableMainCameraComponents()
@@ -135,28 +145,16 @@ public class PlayerComponentsEnabler : NetworkBehaviour
         if (managersGO == null)
             return;
 
-        var inventoryToggleManager = managersGO.transform.Find("InventoryToggleManager");
-        if (inventoryToggleManager != null)
-        {
-            var itm = inventoryToggleManager.GetComponent<InventoryToggleManager>();
-            if (itm != null) itm.enabled = true;
-        }
+        var inventoryToggleManager = managersGO.GetComponentInChildren<InventoryToggleManager>(true);
+        if (inventoryToggleManager != null) inventoryToggleManager.enabled = true;
 
-        var inputManager = managersGO.transform.Find("InputManager");
-        if (inputManager != null)
-        {
-            var im = inputManager.GetComponent<InputManager>();
-            if (im != null) im.enabled = true;
-        }
+        var inputManager = managersGO.GetComponentInChildren<InputManager>(true);
+        if (inputManager != null) inputManager.enabled = true;
 
-        var hotbarManager = managersGO.transform.Find("HotbarManager");
-        if (hotbarManager != null)
-        {
-            var hotbarController = hotbarManager.GetComponent<HotbarController>();
-            if (hotbarController != null) hotbarController.enabled = true;
+        var hotbarController = managersGO.GetComponentInChildren<HotbarController>(true);
+        if (hotbarController != null) hotbarController.enabled = true;
 
-            var equipmentManager = hotbarManager.GetComponent<EquipmentManager>();
-            if (equipmentManager != null) equipmentManager.enabled = true;
-        }
+        var equipmentManager = managersGO.GetComponentInChildren<EquipmentManager>(true);
+        if (equipmentManager != null) equipmentManager.enabled = true;
     }
 }

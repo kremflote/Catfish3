@@ -11,16 +11,15 @@ public class HotbarSelector : MonoBehaviour
     private void Awake()
     {
         if (inputManager == null)
-        {
-            Transform managers = transform.parent;
-            Transform inputManagerGO = managers.Find("InputManager");
-            inputManager = inputManagerGO.GetComponent<InputManager>();
+            inputManager = transform.root.GetComponentInChildren<InputManager>(true);
 
-            Transform player = managers.parent;
-            Transform mainCamera = player.Find("MainCamera");
-            singleHighlighter = mainCamera.GetComponent<SingleHighlighter>();
-        }
-        inputManager.OnHotbarKeyPressed += HandleHotbarKeyPress;
+        if (singleHighlighter == null)
+            singleHighlighter = transform.root.GetComponentInChildren<SingleHighlighter>(true);
+
+        if (inputManager != null)
+            inputManager.OnHotbarKeyPressed += HandleHotbarKeyPress;
+        else
+            Debug.LogWarning("InputManager reference is missing.", this);
     }
 
     private void HandleHotbarKeyPress(int index)
@@ -34,6 +33,7 @@ public class HotbarSelector : MonoBehaviour
 
     private void OnDestroy()
     {
-        inputManager.OnHotbarKeyPressed -= HandleHotbarKeyPress;
+        if (inputManager != null)
+            inputManager.OnHotbarKeyPressed -= HandleHotbarKeyPress;
     }
 }

@@ -7,17 +7,22 @@ public class InventoryToggleManager : MonoBehaviour
     public List<GameObject> playerHUDs = new List<GameObject>();
     private bool isOpen = false;
     private bool isHUDVisible = true;
-    InputManager inputManager;
+    [SerializeField] private InputManager inputManager;
 
 
     void OnEnable()
     {
-        inputManager.OnTabPressed += ToggleInventory;
+        if (inputManager == null)
+            InitializeReferences();
+
+        if (inputManager != null)
+            inputManager.OnTabPressed += ToggleInventory;
     }
 
     void OnDisable()
     {
-        inputManager.OnTabPressed -= ToggleInventory;
+        if (inputManager != null)
+            inputManager.OnTabPressed -= ToggleInventory;
     }
 
     public bool GetIsOpen()
@@ -27,9 +32,16 @@ public class InventoryToggleManager : MonoBehaviour
 
     private void Awake()
     {
-        Transform Managers = transform.parent;
-        Transform inputManagerTransform = Managers.Find("InputManager");
-        inputManager = inputManagerTransform.GetComponent<InputManager>();
+        InitializeReferences();
+    }
+
+    private void InitializeReferences()
+    {
+        if (inputManager == null)
+            inputManager = transform.root.GetComponentInChildren<InputManager>(true);
+
+        if (inputManager == null)
+            Debug.LogWarning("InputManager reference is missing.", this);
     }
 
     void ToggleInventory()

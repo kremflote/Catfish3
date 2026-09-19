@@ -7,10 +7,10 @@ using UnityEngine.UIElements;
 
 public class MultipleHighlighter : MonoBehaviour
 {
-    // Singlehighlighter har kun 1 instans som man kan øke bredde og høyde på
-    // denne har heller mange celler av 1x1 som oppgjør highlight effekten. 
-    // hvorfor lagde jeg to forskjellige når jeg egt kunne gjenbrukt singlehighlighter for samme effekt? idk
-    // denne brukes hvertfall på hotbaren og singlehighlighter brukes på inventory gridet
+    // Singlehighlighter har kun 1 instans som man kan ï¿½ke bredde og hï¿½yde pï¿½
+    // denne har heller mange celler av 1x1 som oppgjï¿½r highlight effekten.
+    // hvorfor lagde jeg to forskjellige nï¿½r jeg egt kunne gjenbrukt singlehighlighter for samme effekt? idk
+    // denne brukes hvertfall pï¿½ hotbaren og singlehighlighter brukes pï¿½ inventory gridet
 
     [SerializeField] int width;
 
@@ -44,11 +44,11 @@ public class MultipleHighlighter : MonoBehaviour
                 hotbarHighlighter.sizeDelta = size;
             }
         }
-        
+
     }
     public void SetSize(int width, int heigth)
     {
-        foreach (RectTransform hotbarHighlighter in hotbarHighlighters) { 
+        foreach (RectTransform hotbarHighlighter in hotbarHighlighters) {
             Vector2 size = new Vector2();
             size.x = width * ItemGrid.tileSizeWidth;
             size.y = heigth * ItemGrid.tileSizeHeight;
@@ -61,14 +61,15 @@ public class MultipleHighlighter : MonoBehaviour
         {
             hotbarHighlighter.SetAsFirstSibling();
         }
-        
+
 
     }
     public void SetParent(ItemGrid targetGrid)
     {
         foreach (RectTransform hotbarHighlighter in hotbarHighlighters)
         {
-            hotbarHighlighter.SetParent(targetGrid.GetComponent<RectTransform>());
+            hotbarHighlighter.SetParent(targetGrid.GetComponent<RectTransform>(), false);
+            hotbarHighlighter.localScale = Vector3.one;
         }
     }
     public void SetPosition(ItemGrid targetGrid, int posX, int posY)
@@ -82,7 +83,7 @@ public class MultipleHighlighter : MonoBehaviour
 
             hotbarHighlighters[i].localPosition = pos;
         }
-        
+
     }
     internal void GenerateHighlighters(int numberOfHighlights, Transform parent)
         {
@@ -139,7 +140,7 @@ public class MultipleHighlighter : MonoBehaviour
             inventoryItemSlot[x, y] = item;
             Debug.Log("Item added to slot");
     }
-    
+
     public InventoryItem[,] GetInventoryItemSlot()
     {
         return inventoryItemSlot;

@@ -87,9 +87,10 @@ public class ItemGrid : MonoBehaviour
     {
         // setter parameter inventoryItem parent til denne item gridden
         RectTransform rectTransform = inventoryItem.GetComponent<RectTransform>();
-        rectTransform.SetParent(this.rectTransform);
+        rectTransform.SetParent(this.rectTransform, false);
+        rectTransform.localScale = Vector3.one;
 
-        // Updates the item’s own data to remember where it is on the grid (top-left corner position).
+        // Updates the itemï¿½s own data to remember where it is on the grid (top-left corner position).
         // Debug.Log($"Placing item at grid ({posX}, {posY}) with size {inventoryItem.Width}x{inventoryItem.Height}.");
         inventoryItem.SetonGridPositionX(posX);
         inventoryItem.SetonGridPositionY(posY);
@@ -130,12 +131,26 @@ public class ItemGrid : MonoBehaviour
     }
     public Vector2Int GetTileGridPosition(Vector2 mousePosition)
     {
-        positionOnTheGrid.x = mousePosition.x - rectTransform.position.x;
-        positionOnTheGrid.y = rectTransform.position.y -  mousePosition.y;
+        Camera eventCamera = GetEventCamera();
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(rectTransform, mousePosition, eventCamera, out Vector2 localPoint);
 
-        tileGridPosition.x = (int)(positionOnTheGrid.x / tileSizeWidth);
-        tileGridPosition.y = (int)(positionOnTheGrid.y / tileSizeHeight);
+        positionOnTheGrid.x = localPoint.x + rectTransform.rect.width * rectTransform.pivot.x;
+        positionOnTheGrid.y = rectTransform.rect.height * (1f - rectTransform.pivot.y) - localPoint.y;
+
+        tileGridPosition.x = Mathf.FloorToInt(positionOnTheGrid.x / tileSizeWidth);
+        tileGridPosition.y = Mathf.FloorToInt(positionOnTheGrid.y / tileSizeHeight);
         return tileGridPosition;
+    }
+
+    private Camera GetEventCamera()
+    {
+        Canvas canvas = GetComponentInParent<Canvas>();
+        if (canvas == null || canvas.renderMode == RenderMode.ScreenSpaceOverlay)
+        {
+            return null;
+        }
+
+        return canvas.worldCamera;
     }
     public Vector2Int? FindSpaceForObject(InventoryItem itemToInsert)
     {

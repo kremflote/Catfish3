@@ -8,7 +8,6 @@ using StarterAssets;
 using UnityEngine.InputSystem;
 using System.Globalization;
 using FishNet.Object;
-using UnityEditor.Timeline.Actions;
 
 
 public class SelectionManager : NetworkBehaviour
@@ -27,27 +26,25 @@ public class SelectionManager : NetworkBehaviour
     private void Start()
     {
         onTarget = false;
-        GameObject cameraGO = GameObject.Find("MainCamera");
-        if (cameraGO != null)
-        {
-            foreach (Transform child in cameraGO.transform)
-            {
-                _playerInput = child.GetComponent<PlayerInput>();
-                if (_playerInput != null)
-                {
-                    break; // Found it, stop searching
-                }
-            }
 
-            if (_playerInput == null)
-            {
-                Debug.LogWarning("No PlayerInput found in children of MainCamera.");
-            }
-        }
+        if (mainCamera == null)
+            mainCamera = GetComponentInChildren<Camera>(true);
+
+        if (_playerInput == null)
+            _playerInput = GetComponentInChildren<PlayerInput>(true);
+
+        if (mainCamera == null)
+            Debug.LogWarning("No Camera reference found for SelectionManager.", this);
+
+        if (_playerInput == null)
+            Debug.LogWarning("No PlayerInput reference found for SelectionManager.", this);
     }
 
     public void HandleSelection()
     {
+        if (mainCamera == null)
+            return;
+
         Ray ray = mainCamera.ScreenPointToRay(Mouse.current.position.ReadValue());
         RaycastHit hit;
 
@@ -57,7 +54,7 @@ public class SelectionManager : NetworkBehaviour
 
         if (Physics.Raycast(ray, out hit, maxDistance, mask))
         {
-            
+
             var selectionTransform = hit.transform;
             InteractableObject interactable = selectionTransform.GetComponent<InteractableObject>();
             // If not found on hit object, try its parent

@@ -1,10 +1,7 @@
-﻿using System;
-using System.Globalization;
+using System;
 using FishNet.Object;
 using StarterAssets;
 using UnityEngine;
-using UnityEngine.InputSystem;
-using UnityEngine.Windows;
 
 public class BoatController : NetworkBehaviour
 {
@@ -15,30 +12,24 @@ public class BoatController : NetworkBehaviour
     public StarterAssetsInputs _input { get; set; }
     public InventoryToggleManager inventoryToggleManager;
     public Boat boat;
-    private Wheel wheelScript;
 
 
     public void Initialize(InventoryToggleManager inventoryToggleManager, PlayerStateMachine stateMachine)
     {
         this.inventoryToggleManager = inventoryToggleManager;
         this.stateMachine = stateMachine;
-        
-    }
 
-    private void Start()
-    {
-        wheelScript = boat.wheel.GetComponent<Wheel>();
     }
 
     public void Steer()
     {
-        if (boat == null || wheelScript == null || _input == null) {
-            Debug.LogError("BoatController is not properly initialized. Boat or wheel or input is null.", this);
+        if (boat == null || _input == null) {
+            Debug.LogError("BoatController is not properly initialized. Boat or input is null.", this);
             return;
         }
         float steerInput = _input.move.x;
 
-        wheelScript.AddAngle(steerInput);
+        boat.SetSteeringInput(steerInput);
     }
 
     internal object GetPilotPosition()
@@ -46,5 +37,5 @@ public class BoatController : NetworkBehaviour
         throw new NotImplementedException();
     }
 
-    
+
 }

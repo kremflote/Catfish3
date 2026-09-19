@@ -1,6 +1,5 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
 using static ItemGrid;
 
@@ -19,13 +18,21 @@ public class InventoryController : MonoBehaviour
     private InventoryItem selectedItem;
     private InventoryItem highlightItem;
     private SingleHighlighter inventoryHighlight;
-    private MultipleHighlighter inventoryHotbarHighlight;
     private RectTransform rectTransform;
-    private InventoryToggleManager inventoryToggleManager;  
-    InputManager inputManager;
-    HotbarController hotbarController;
+    [SerializeField] private InputManager inputManager;
+    [SerializeField] private InventoryToggleManager inventoryToggleManager;
+    [SerializeField] private HotbarController hotbarController;
+    [SerializeField] private MultipleHighlighter inventoryHotbarHighlight;
+    [SerializeField] private Transform expandableBotleft;
+    [SerializeField] private Transform expandableBotright;
+    [SerializeField] private Transform expandableTopleft;
+    [SerializeField] private Transform expandableTopright;
+    [SerializeField] private Transform playerScreen;
+    [SerializeField] private Transform worldScreen;
+    [SerializeField] private Transform itemDescriptionScreen;
+    [SerializeField] private Transform hotbar;
 
-    // lagrer hvilken itemgrid og posisjonen siste plasserte item var i 
+    // lagrer hvilken itemgrid og posisjonen siste plasserte item var i
     public LastPlacement? lastPlacement;
 
     [SerializeField] private List<ItemData> items;
@@ -34,6 +41,12 @@ public class InventoryController : MonoBehaviour
 
     void OnEnable()
     {
+        if (inputManager == null)
+            inputManager = transform.root.GetComponentInChildren<InputManager>(true);
+
+        if (inputManager == null)
+            return;
+
         inputManager.OnQPressed += HandleCreateRandomItem;
         inputManager.OnTPressed += HandleInsertAll;
         inputManager.OnUPressed += HandleInsertRandom;
@@ -42,6 +55,9 @@ public class InventoryController : MonoBehaviour
 
     void OnDisable()
     {
+        if (inputManager == null)
+            return;
+
         inputManager.OnQPressed -= HandleCreateRandomItem;
         inputManager.OnTPressed -= HandleInsertAll;
         inputManager.OnUPressed -= HandleInsertRandom;
@@ -91,7 +107,8 @@ public class InventoryController : MonoBehaviour
     private void Awake()
     {
         InitializeComponents();
-        inventoryHighlight.Show(false);
+        if (inventoryHighlight != null)
+            inventoryHighlight.Show(false);
     }
     private void Update()
     {
@@ -110,37 +127,32 @@ public class InventoryController : MonoBehaviour
         playerScreens = new List<Transform>();
         playerHUDs = new List<Transform>();
         inventoryHighlight = GetComponent<SingleHighlighter>();
-        InitializeHotbarHighlight();
         InitializeInventoryToggleManager();
+        InitializeHotbarHighlight();
 
-        Transform player = transform.parent;
-        Transform canvas = player.Find("Canvas");
+        Transform player = transform.root;
+        Transform canvas = canvasTransform != null ? canvasTransform : player.GetComponentInChildren<Canvas>(true)?.transform;
         if (canvas == null)
         {
-            Debug.LogError("Canvas not found in player hierarchy.");
+            Debug.LogError("Canvas reference is missing.", this);
+            return;
         }
-        Transform managers = player.Find("Managers");
-        Transform inputManagerTransform = managers.Find("InputManager");
-        inputManager = inputManagerTransform.GetComponent<InputManager>();
+        canvasTransform = canvas;
 
         if (inputManager == null)
-        {
-            Debug.LogError("InputManager not found in Managers hierarchy.");
-        }
-        Transform expandableBotleft = canvas.Find("expandable_botleft");
-        Transform greyGrid = expandableBotleft.Find("GreyGrid");
-        ItemGrid itemGrid = greyGrid.GetComponent<ItemGrid>();
-        mainItemGrid = itemGrid;
-        Transform expandableBotright = canvas.Find("expandable_botright");
-        Transform expandableTopleft = canvas.Find("expandable_topleft");
-        Transform expandableTopright = canvas.Find("expandable_topright");
-        Transform playerScreen = canvas.Find("player_screen");
-        Transform worldScreen = canvas.Find("world_screen");
-        Transform itemDescriptionScreen = canvas.Find("item_description_screen");
-        Transform hotbar = canvas.Find("hotbar");
+            inputManager = player.GetComponentInChildren<InputManager>(true);
 
-        Transform hotbarManager = managers.Find("HotbarManager");
-        hotbarController = hotbarManager.GetComponent<HotbarController>();
+        if (inputManager == null)
+            Debug.LogError("InputManager reference is missing.", this);
+
+        ResolveInventoryScreens(canvas);
+
+        Transform greyGrid = expandableBotleft != null ? expandableBotleft.Find("GreyGrid") : null;
+        ItemGrid itemGrid = greyGrid != null ? greyGrid.GetComponent<ItemGrid>() : null;
+        mainItemGrid = mainItemGrid != null ? mainItemGrid : itemGrid;
+
+        if (hotbarController == null)
+            hotbarController = player.GetComponentInChildren<HotbarController>(true);
 
         playerScreens.Add(expandableBotleft);
         playerScreens.Add(expandableBotright);
@@ -154,36 +166,60 @@ public class InventoryController : MonoBehaviour
         AddUIHUD(hotbar);
         AddUIInventory(expandableBotleft);
         AddUIInventory(playerScreen);
-
     }
+
+    private void ResolveInventoryScreens(Transform canvas)
+    {
+        if (expandableBotleft == null)
+            expandableBotleft = canvas.Find("expandable_botleft");
+        if (expandableBotright == null)
+            expandableBotright = canvas.Find("expandable_botright");
+        if (expandableTopleft == null)
+            expandableTopleft = canvas.Find("expandable_topleft");
+        if (expandableTopright == null)
+            expandableTopright = canvas.Find("expandable_topright");
+        if (playerScreen == null)
+            playerScreen = canvas.Find("player_screen");
+        if (worldScreen == null)
+            worldScreen = canvas.Find("world_screen");
+        if (itemDescriptionScreen == null)
+            itemDescriptionScreen = canvas.Find("item_description_screen");
+        if (hotbar == null)
+            hotbar = canvas.Find("hotbar");
+    }
+
     private void InitializeHotbarHighlight()
     {
-        Transform player = transform.parent;
+        Transform player = transform.root;
 
-        Transform mainCamera = player.Find("MainCamera");
-        MultipleHighlighter inventoryHotbarHighlight2 = mainCamera.GetComponent<MultipleHighlighter>();
-        inventoryHotbarHighlight = inventoryHotbarHighlight2;
+        if (inventoryHotbarHighlight == null)
+            inventoryHotbarHighlight = player.GetComponentInChildren<MultipleHighlighter>(true);
 
-        Transform canvas = transform.parent.Find("Canvas");
+        Transform canvas = canvasTransform != null ? canvasTransform : player.GetComponentInChildren<Canvas>(true)?.transform;
+        if (canvas != null)
+            ResolveInventoryScreens(canvas);
 
-        Transform expandable_botleft = canvas.Find("expandable_botleft");
+        Transform greyGrid = expandableBotleft != null ? expandableBotleft.Find("GreyGrid") : null;
+        ItemGrid eblItemGrid = greyGrid != null ? greyGrid.GetComponent<ItemGrid>() : null;
 
-        Transform greyGrid = expandable_botleft.Find("GreyGrid");
-
-        ItemGrid eblItemGrid = greyGrid.GetComponent<ItemGrid>();
+        if (inventoryHotbarHighlight == null || eblItemGrid == null || canvas == null)
+        {
+            Debug.LogWarning("Hotbar highlight references are incomplete.", this);
+            return;
+        }
 
         int numberOfHighlights = eblItemGrid.GetGridSizeWidth();
-
 
         inventoryHotbarHighlight.GenerateHighlighters(numberOfHighlights, canvas);
         inventoryHotbarHighlight.SetSize(1, 1);
         inventoryHotbarHighlight.SetBehind();
         inventoryHotbarHighlight.SetParent(eblItemGrid);
-        // start posisjonen settes her, så blir de neste highlighteren som genereres plassert til høyre
         inventoryHotbarHighlight.SetPosition(eblItemGrid, 0, 2);
     }
     private void AddUIHUD(Transform uiElement)
     {
+        if (inventoryToggleManager == null || uiElement == null)
+            return;
 
         inventoryToggleManager.AddHUD(uiElement.gameObject);
         InitializeGridInteract(uiElement);
@@ -214,13 +250,16 @@ public class InventoryController : MonoBehaviour
     }
     private void InitializeInventoryToggleManager()
     {
-        Transform playerGO = transform.parent;
-        Transform managers = playerGO.Find("Managers");
-        Transform inventoryToggleGO = managers.Find("InventoryToggleManager");
-        inventoryToggleManager = inventoryToggleGO.GetComponent<InventoryToggleManager>();
+        if (inventoryToggleManager == null)
+            inventoryToggleManager = transform.root.GetComponentInChildren<InventoryToggleManager>(true);
+
+        if (inventoryToggleManager == null)
+            Debug.LogError("InventoryToggleManager reference is missing.", this);
     }
     private void AddUIInventory(Transform uiElement)
     {
+        if (inventoryToggleManager == null || uiElement == null)
+            return;
 
         inventoryToggleManager.AddPlayerScreen(uiElement.gameObject);
         InitializeGridInteract(uiElement);
@@ -316,7 +355,7 @@ public class InventoryController : MonoBehaviour
             // Get the tile grid position based on the mouse position
             Vector2Int positionOnGrid = selectedItemGrid.GetTileGridPosition(position);
             // Check if the position is within the bounds of the grid
-            if (selectedItemGrid.PositionCheck(positionOnGrid.x, positionOnGrid.y, 1, 1) == false) 
+            if (selectedItemGrid.PositionCheck(positionOnGrid.x, positionOnGrid.y, 1, 1) == false)
             {
                 inventoryHighlight.Show(false);
                 return;
@@ -370,7 +409,7 @@ public class InventoryController : MonoBehaviour
                 }
         }
     }
-    
+
     public void SetItemGrid(ItemGrid itemGrid)
     {
         this.selectedItemGrid = itemGrid;
@@ -383,7 +422,7 @@ public class InventoryController : MonoBehaviour
             return;
         }
 
-        InventoryItem inventoryItem = Instantiate(itemPrefab).GetComponent<InventoryItem>();
+        InventoryItem inventoryItem = Instantiate(itemPrefab, canvasTransform, false).GetComponent<InventoryItem>();
         if (inventoryItem == null)
         {
             Debug.LogError("Failed to instantiate InventoryItem.");
@@ -392,7 +431,7 @@ public class InventoryController : MonoBehaviour
 
         selectedItem = inventoryItem;
         rectTransform = inventoryItem.GetComponent<RectTransform>();
-        rectTransform.SetParent(canvasTransform);
+        rectTransform.localScale = Vector3.one;
 
         int selectedItemID = UnityEngine.Random.Range(0, items.Count);
         inventoryItem.Set(items[selectedItemID]);
@@ -441,8 +480,9 @@ public class InventoryController : MonoBehaviour
     }
     private void AdjustMousePosition(ref Vector2 position)
     {
-        position.x -= (selectedItem.Width - 1) * ItemGrid.tileSizeWidth / 2;
-        position.y += (selectedItem.Height - 1) * ItemGrid.tileSizeHeight / 2;
+        float canvasScale = GetCanvasScaleFactor();
+        position.x -= (selectedItem.Width - 1) * ItemGrid.tileSizeWidth * canvasScale / 2f;
+        position.y += (selectedItem.Height - 1) * ItemGrid.tileSizeHeight * canvasScale / 2f;
     }
     private void TryPlaceSelectedItem(Vector2Int tileGridPosition)
     {
@@ -507,9 +547,15 @@ public class InventoryController : MonoBehaviour
     {
         Transform selectedItemTransform = selectedItem.transform;
 
-        Transform canvas = selectedItemTransform.parent.parent.parent;
+        Transform canvas = canvasTransform != null ? canvasTransform : selectedItemTransform.GetComponentInParent<Canvas>(true)?.transform;
+        if (canvas == null)
+        {
+            Debug.LogError("Canvas reference is missing.", this);
+            return;
+        }
 
-        selectedItemTransform.SetParent(canvas);
+        selectedItemTransform.SetParent(canvas, false);
+        selectedItemTransform.localScale = Vector3.one;
 
     }
     public bool CancelPickupItem()
@@ -590,8 +636,36 @@ public class InventoryController : MonoBehaviour
     {
         if (selectedItem != null)
         {
-            rectTransform.position = Input.mousePosition;
+            RectTransform canvasRect = canvasTransform as RectTransform;
+            if (canvasRect == null)
+            {
+                rectTransform.position = Input.mousePosition;
+                return;
+            }
+
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                canvasRect,
+                Input.mousePosition,
+                GetCanvasEventCamera(),
+                out Vector2 localPoint);
+
+            rectTransform.localPosition = localPoint;
         }
+    }
+    private Camera GetCanvasEventCamera()
+    {
+        Canvas canvas = canvasTransform != null ? canvasTransform.GetComponent<Canvas>() : null;
+        if (canvas == null || canvas.renderMode == RenderMode.ScreenSpaceOverlay)
+        {
+            return null;
+        }
+
+        return canvas.worldCamera;
+    }
+    private float GetCanvasScaleFactor()
+    {
+        Canvas canvas = canvasTransform != null ? canvasTransform.GetComponent<Canvas>() : null;
+        return canvas != null ? canvas.scaleFactor : 1f;
     }
     private bool IsPointerOffGrid()
     {

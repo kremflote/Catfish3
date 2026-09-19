@@ -1,17 +1,16 @@
 using System;
-using FishNet.Example.Scened;
 using FishNet.Object;
 using StarterAssets;
 using UnityEngine;
 
 public class IgnitionKey1 : InteractableObject
 {
-    public bool isOn = false; 
-    public bool isIn = false; 
+    public bool isOn = false;
+    public bool isIn = false;
 
     [SerializeField] private Transform key1;
 
-    public MeshRenderer key1MeshRenderer; 
+    public MeshRenderer key1MeshRenderer;
 
     public BoatController BoatController;
 
@@ -30,7 +29,7 @@ public class IgnitionKey1 : InteractableObject
             if (success)
             {
                 isIn = true;
-                key1MeshRenderer.enabled = true; 
+                key1MeshRenderer.enabled = true;
             }
         }
     }
@@ -42,19 +41,19 @@ public class IgnitionKey1 : InteractableObject
 
     public void InsertKey()
     {
-        isIn = true; 
-        key1.localRotation = Quaternion.Euler(0, 0, 0); 
+        isIn = true;
+        key1.localRotation = Quaternion.Euler(0, 0, 0);
         Debug.Log("Key inserted into ignition.");
     }
 
     public bool IsOn()
     {
-        return isOn; 
+        return isOn;
     }
 
     public bool IsIn()
     {
-        return isIn; 
+        return isIn;
     }
 
     public void ToggleIgnition(PlayerStateMachine stateMachine, InventoryToggleManager inventoryToggleManager, FirstPersonController playerController, SelectionManager selectionManager)
@@ -65,14 +64,14 @@ public class IgnitionKey1 : InteractableObject
         {
             // Rotate the key back to the "off" position
             key1.localRotation = Quaternion.Euler(0, 90, 0);
-            stateMachine.SwitchState(new MovementState(playerController)); // endre tilbake til vanlig movement state når player skrur nøkkelen av 
+            stateMachine.SwitchState(new MovementState(playerController)); // endre tilbake til vanlig movement state nï¿½r player skrur nï¿½kkelen av
 
         }
         else
         {
             // Rotate the key to the "on" position
             key1.localRotation = Quaternion.Euler(0, 0, 0);
-            stateMachine.SwitchState(new PilotingState(BoatController, inventoryToggleManager, playerController, selectionManager)); // Viktig linje. Den sender båtens kontroller til spillerens state machine som setter han i pilotmode til båten. Konsulter drawio filen for visualisering
+            stateMachine.SwitchState(new PilotingState(BoatController, inventoryToggleManager, playerController, selectionManager)); // Viktig linje. Den sender bï¿½tens kontroller til spillerens state machine som setter han i pilotmode til bï¿½ten. Konsulter drawio filen for visualisering
 
         }
     }

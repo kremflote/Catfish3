@@ -1,43 +1,58 @@
 using System;
 using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 using static ItemGrid;
 
 public class HotbarController : MonoBehaviour
 {
-    private InputManager inputManager;
+    [SerializeField] private InputManager inputManager;
+    [SerializeField] private ItemGrid itemGrid;
+    [SerializeField] private SingleHighlighter singleHighlighter;
+    [SerializeField] private EquipmentManager equipmentManager;
     private int width;
-    private ItemGrid itemGrid;
     private InventoryItem[,] hotbarItems;
     private int selectedIndex = 0;
     private InventoryItem selectedItem;
-    private SingleHighlighter singleHighlighter;
     private int lastIndex;
     private int lastSelectedItemID;
-    private EquipmentManager equipmentManager;
 
 
     private void Awake()
     {
-        equipmentManager = GetComponent<EquipmentManager>();
-        Transform managers = transform.parent;
-        Transform player = managers.parent;
-        Transform mainCamera = player.Find("MainCamera");
-        singleHighlighter = mainCamera.GetComponent<SingleHighlighter>();
-        Transform canvas = player.Find("Canvas");
-        Transform hotbar = canvas.Find("hotbar");
-        Transform greyGrid = hotbar.Find("GreyGrid");
-        itemGrid = greyGrid.GetComponent<ItemGrid>();
-        Transform inputManagerGO = managers.Find("InputManager");
-        inputManager = inputManagerGO.GetComponent<InputManager>();
+        Transform player = transform.root;
+
+        if (equipmentManager == null)
+            equipmentManager = GetComponent<EquipmentManager>();
+
+        if (singleHighlighter == null)
+            singleHighlighter = player.GetComponentInChildren<SingleHighlighter>(true);
+
+        if (itemGrid == null)
+        {
+            Transform canvas = player.GetComponentInChildren<Canvas>(true)?.transform;
+            Transform hotbar = canvas != null ? canvas.Find("hotbar") : null;
+            Transform greyGrid = hotbar != null ? hotbar.Find("GreyGrid") : null;
+            itemGrid = greyGrid != null ? greyGrid.GetComponent<ItemGrid>() : null;
+        }
+
+        if (inputManager == null)
+            inputManager = player.GetComponentInChildren<InputManager>(true);
+
+        if (itemGrid == null)
+        {
+            Debug.LogError("Hotbar ItemGrid reference is missing.", this);
+            enabled = false;
+            return;
+        }
 
         width = itemGrid.GetGridSizeWidth();
-
         InitializeHotbarItemSlots();
 
-        inputManager.OnHotbarKeyPressed += HandleHotbarKeyPress;
+        if (inputManager != null)
+            inputManager.OnHotbarKeyPressed += HandleHotbarKeyPress;
+        else
+            Debug.LogWarning("InputManager reference is missing.", this);
     }
     public void InitializeHotbarItemSlots()
     {
@@ -45,6 +60,9 @@ public class HotbarController : MonoBehaviour
     }
     private void HandleHotbarKeyPress(int index)
     {
+        if (singleHighlighter == null || equipmentManager == null)
+            return;
+
         selectedIndex = index;
 
         selectedItem = itemGrid.GetItem(index, 0);
@@ -62,7 +80,7 @@ public class HotbarController : MonoBehaviour
             equipmentManager.Unequip();
         }
         HandleHighlight();
-        
+
         lastSelectedItemID = selectedItem != null ? selectedItem.GetInstanceID() : -1;
         lastIndex = index;
     }
@@ -115,7 +133,7 @@ public class HotbarController : MonoBehaviour
         // Clear the entire inventory row first
         for (int i = 0; i < inventoryWidth; i++)
         {
-            if (itemGrid.inventoryItemSlot[i, targetRow] != null) { 
+            if (itemGrid.inventoryItemSlot[i, targetRow] != null) {
                 if (itemGrid.inventoryItemSlot[i, targetRow].Height == 1) // dont delete items that are too high to get added to inventory
                 {
                     itemGrid.ClearSlot(i, targetRow);
@@ -155,7 +173,7 @@ public class HotbarController : MonoBehaviour
         {
             for (int y = 0; y < hotbarItems.GetLength(1); y++)
             {
-                if (hotbarItems[x, y] != null)      
+                if (hotbarItems[x, y] != null)
                     return false;
             }
         }
@@ -164,7 +182,8 @@ public class HotbarController : MonoBehaviour
     public int GetSelectedIndex() => selectedIndex;
     private void OnDestroy()
     {
-        inputManager.OnHotbarKeyPressed -= HandleHotbarKeyPress;
+        if (inputManager != null)
+            inputManager.OnHotbarKeyPressed -= HandleHotbarKeyPress;
     }
 
 }

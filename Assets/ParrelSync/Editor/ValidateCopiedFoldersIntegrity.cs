@@ -30,9 +30,22 @@ namespace ParrelSync
         public static void ValidateFolder(string targetRoot, string originalRoot, string folderName)
         {
             var targetFolderPath = Path.Combine(targetRoot, folderName);
-            var targetFolderHash = CreateMd5ForFolder(targetFolderPath);
-
             var originalFolderPath = Path.Combine(originalRoot, folderName);
+
+            if (!Directory.Exists(originalFolderPath))
+            {
+                Debug.LogWarning("ParrelSync: Cannot validate missing source folder '" + originalFolderPath + "'.");
+                return;
+            }
+
+            if (!Directory.Exists(targetFolderPath))
+            {
+                Debug.Log("ParrelSync: Missing '" + folderName + "' directory in cloned project. Creating it from original project...");
+                FileUtil.ReplaceDirectory(originalFolderPath, targetFolderPath);
+                return;
+            }
+
+            var targetFolderHash = CreateMd5ForFolder(targetFolderPath);
             var originalFolderHash = CreateMd5ForFolder(originalFolderPath);
 
             if (targetFolderHash != originalFolderHash)
@@ -44,11 +57,22 @@ namespace ParrelSync
 
         static string CreateMd5ForFolder(string path)
         {
+            if (!Directory.Exists(path))
+            {
+                return string.Empty;
+            }
+
             // assuming you want to include nested folders
             var files = Directory.GetFiles(path, "*.*", SearchOption.AllDirectories)
                                  .OrderBy(p => p).ToList();
 
             MD5 md5 = MD5.Create();
+
+            if (files.Count == 0)
+            {
+                md5.TransformFinalBlock(Array.Empty<byte>(), 0, 0);
+                return BitConverter.ToString(md5.Hash).Replace("-", "").ToLower();
+            }
 
             for (int i = 0; i < files.Count; i++)
             {
