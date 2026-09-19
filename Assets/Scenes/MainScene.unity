@@ -4823,8 +4823,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6940698311800813157}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 103.41704, y: 1.34, z: 6.17}
+  m_LocalRotation: {x: -0, y: -0.72976595, z: -0, w: 0.68369716}
+  m_LocalPosition: {x: 97.54, y: 1.34, z: 36.12}
   m_LocalScale: {x: 0.9, y: 0.9, z: 0.9}
   m_ConstrainProportionsScale: 1
   m_Children:
@@ -4834,7 +4834,7 @@ Transform:
   - {fileID: 114770937}
   - {fileID: 689564461}
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: -93.734, z: 0}
 --- !u!1 &5302609999216282649
 GameObject:
   m_ObjectHideFlags: 0
@@ -5854,6 +5854,7 @@ MonoBehaviour:
   _addedNetworkObject: {fileID: 5198844830452083011}
   _networkObjectCache: {fileID: 0}
   _currentAngle: -0.52
+  steeringWheel: {fileID: 0}
 --- !u!224 &8472882362263256048
 RectTransform:
   m_ObjectHideFlags: 0
