@@ -27,8 +27,11 @@ public class InventoryHighlighter : MonoBehaviour
     {
         foreach (RectTransform target in ActiveHighlighters)
         {
-            if (target != null)
-                target.gameObject.SetActive(isVisible);
+            if (target == null)
+                continue;
+
+            DisableRaycastTarget(target);
+            target.gameObject.SetActive(isVisible);
         }
     }
 
@@ -148,8 +151,17 @@ public class InventoryHighlighter : MonoBehaviour
 
         Image image = highlighterObject.GetComponent<Image>();
         image.color = new Color(0.560f, 0.412f, 0.263f, 0.039f);
+        image.raycastTarget = false;
 
         return target;
+    }
+
+    // Highlight graphics are visual feedback only; clicks should pass through to the grid beneath.
+    private void DisableRaycastTarget(RectTransform target)
+    {
+        Image image = target != null ? target.GetComponent<Image>() : null;
+        if (image != null)
+            image.raycastTarget = false;
     }
 
     // Applies the same local position to every active rectangle.

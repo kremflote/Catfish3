@@ -43,6 +43,14 @@ namespace StarterAssets
         [Tooltip("How long the collider takes to move between standing and crouching.")]
         [SerializeField] private float crouchTransitionDuration = 0.18f;
 
+        [Header("Slide")]
+        [Tooltip("Minimum starting speed for a slide.")]
+        [SerializeField] private float slideStartSpeed = 6.5f;
+        [Tooltip("How quickly slide speed decays on flat ground.")]
+        [SerializeField] private float slideDeceleration = 10f;
+        [Tooltip("Slide ends once grounded speed falls below this value.")]
+        [SerializeField] private float slideEndSpeed = 2.25f;
+
 		[Space(10)]
 		[Tooltip("The height the player can jump")]
 		public float JumpHeight = 1.2f;
@@ -101,6 +109,8 @@ namespace StarterAssets
         private PlayerInputMode currentInputMode = PlayerInputMode.Gameplay;
         private bool wantsCursorLocked = true;
         private bool isCrouched;
+        private Vector3 slideDirection;
+        private float slideSpeed;
         private float standingHeight;
         private Vector3 standingCenter;
         private float targetColliderHeight;
@@ -112,6 +122,8 @@ namespace StarterAssets
         public PlayerInputState Input => _input;
         public SelectionManager SelectionManager => selectionManager;
         public bool IsCrouched => isCrouched;
+        public bool IsTryingToSprint => _input != null && _input.sprint && _input.move != Vector2.zero;
+        public bool HasSlideEnded => slideSpeed <= slideEndSpeed;
 
         // FishNet calls this when the player exists on this client; only the owner initializes local control.
 		public override void OnStartClient()
@@ -400,6 +412,35 @@ namespace StarterAssets
 			}
 			_controller.Move(inputDirection.normalized * (_speed * Time.deltaTime) + new Vector3(0.0f, _verticalVelocity, 0.0f) * Time.deltaTime);
 		}
+
+        // Captures current horizontal momentum so SlidingState can start from the player's current run/fall direction.
+        public void BeginSlide()
+        {
+            Vector3 horizontalVelocity = new Vector3(_controller.velocity.x, 0f, _controller.velocity.z);
+
+            if (horizontalVelocity.sqrMagnitude > 0.01f)
+            {
+                slideDirection = horizontalVelocity.normalized;
+                slideSpeed = Mathf.Max(horizontalVelocity.magnitude, slideStartSpeed);
+                return;
+            }
+
+            Vector3 inputDirection = transform.right * _input.move.x + transform.forward * _input.move.y;
+            slideDirection = inputDirection.sqrMagnitude > 0.01f ? inputDirection.normalized : transform.forward;
+            slideSpeed = slideStartSpeed;
+        }
+
+        // Moves forward with preserved slide momentum, then decays speed; airborne slides wait until landing to resolve.
+        public void SlideMove()
+        {
+            if (Grounded)
+                slideSpeed = Mathf.MoveTowards(slideSpeed, 0f, slideDeceleration * Time.deltaTime);
+
+            _speed = slideSpeed;
+            Vector3 horizontalMove = slideDirection * (slideSpeed * Time.deltaTime);
+            Vector3 verticalMove = new Vector3(0f, _verticalVelocity, 0f) * Time.deltaTime;
+            _controller.Move(horizontalMove + verticalMove);
+        }
 
         // Applies jump impulse and gravity, including small timers that make jumps and step-offs feel smoother.
         public void JumpAndGravity()

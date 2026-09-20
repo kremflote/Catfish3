@@ -15,6 +15,7 @@ public partial class InventoryController : MonoBehaviour
 
     private List<Transform> playerScreens;
     private List<Transform> playerHUDs;
+    private readonly List<ItemGrid> registeredItemGrids = new List<ItemGrid>();
     private InventoryItemUI highlightItem;
     private ItemGrid lastHoveredGrid;
     private InventoryHighlighter inventoryHighlight;
@@ -52,9 +53,14 @@ public partial class InventoryController : MonoBehaviour
     private void Update()
     {
         inventoryCursor?.UpdateDrag(GetPointerPosition(), GetCanvasEventCamera());
-        if (inventoryVisibilityController != null && inventoryVisibilityController.IsOpen && !IsPointerOffGrid())
+        if (inventoryVisibilityController != null && inventoryVisibilityController.IsOpen)
         {
-            HandleHighlight();
+            RefreshSelectedGridFromPointer(true);
+
+            if (!IsPointerOffGrid())
+                HandleHighlight();
+            else
+                inventoryHighlight?.Show(false);
         }
     }
 
@@ -103,6 +109,7 @@ public partial class InventoryController : MonoBehaviour
 
         ItemGrid itemGrid = uiReferences != null ? uiReferences.GetItemGrid(expandableBotleft) : null;
         mainItemGrid = mainItemGrid != null ? mainItemGrid : itemGrid;
+        RegisterItemGrid(mainItemGrid);
 
         if (hotbarController == null)
             hotbarController = player.GetComponentInChildren<HotbarController>(true);
@@ -178,7 +185,17 @@ public partial class InventoryController : MonoBehaviour
     // Called by GridInteract when the pointer enters/leaves a grid, so clicks target the correct grid.
     public void SetItemGrid(ItemGrid itemGrid)
     {
+        RegisterItemGrid(itemGrid);
         this.selectedItemGrid = itemGrid;
+    }
+
+    // Keeps a small list of usable grids so clicks can find their target even if pointer enter/exit missed.
+    private void RegisterItemGrid(ItemGrid itemGrid)
+    {
+        if (itemGrid == null || registeredItemGrids.Contains(itemGrid))
+            return;
+
+        registeredItemGrids.Add(itemGrid);
     }
 
     // Instantiates a UI item icon and gives it a random ItemData from the database.

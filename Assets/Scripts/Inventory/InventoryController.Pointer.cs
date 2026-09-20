@@ -103,7 +103,7 @@ public partial class InventoryController
     // Treats no selected grid as "off grid" for click and highlight logic.
     private bool IsPointerOffGrid()
     {
-        return selectedItemGrid == null;
+        return selectedItemGrid == null || !GridContainsPointer(selectedItemGrid, GetPointerPosition());
     }
 
     // Safely asks the active grid to convert a screen position into a grid tile.
@@ -116,6 +116,53 @@ public partial class InventoryController
     private Vector2 GetPointerPosition()
     {
         return playerInputState != null ? playerInputState.pointerPosition : Vector2.zero;
+    }
+
+    // Updates the active grid from the current pointer position instead of relying only on UI hover callbacks.
+    private bool RefreshSelectedGridFromPointer(bool clearWhenMissing)
+    {
+        ItemGrid gridUnderPointer = GetGridUnderPointer(GetPointerPosition());
+        if (gridUnderPointer == null)
+        {
+            if (clearWhenMissing)
+                SetItemGrid(null);
+
+            return false;
+        }
+
+        SetHoveredGrid(gridUnderPointer);
+        SetItemGrid(gridUnderPointer);
+        return true;
+    }
+
+    // Finds the topmost registered inventory grid containing the pointer.
+    private ItemGrid GetGridUnderPointer(Vector2 pointerPosition)
+    {
+        for (int i = registeredItemGrids.Count - 1; i >= 0; i--)
+        {
+            ItemGrid itemGrid = registeredItemGrids[i];
+            if (itemGrid == null)
+            {
+                registeredItemGrids.RemoveAt(i);
+                continue;
+            }
+
+            if (GridContainsPointer(itemGrid, pointerPosition))
+                return itemGrid;
+        }
+
+        return null;
+    }
+
+    // Checks the pointer against a grid RectTransform, ignoring inactive screens.
+    private bool GridContainsPointer(ItemGrid itemGrid, Vector2 pointerPosition)
+    {
+        if (itemGrid == null || !itemGrid.gameObject.activeInHierarchy)
+            return false;
+
+        RectTransform gridTransform = itemGrid.GetComponent<RectTransform>();
+        return gridTransform != null &&
+            RectTransformUtility.RectangleContainsScreenPoint(gridTransform, pointerPosition, GetCanvasEventCamera());
     }
 
 }

@@ -93,6 +93,7 @@ public partial class InventoryController
             return;
         }
 
+        RegisterItemGrid(greyGrid.GetComponent<ItemGrid>());
         inventoryVisibilityController.AddHUD(greyGrid);
     }
 
@@ -127,6 +128,7 @@ public partial class InventoryController
             return;
         }
 
+        RegisterItemGrid(greyGrid.GetComponent<ItemGrid>());
         inventoryVisibilityController.AddPlayerScreen(greyGrid);
     }
 

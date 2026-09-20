@@ -226,6 +226,9 @@ MonoBehaviour:
   crouchHeight: 1.2
   crouchSpeedMultiplier: 0.65
   crouchTransitionDuration: 0.18
+  slideStartSpeed: 6.5
+  slideDeceleration: 10
+  slideEndSpeed: 2.25
   JumpHeight: 1.2
   Gravity: -15
   JumpTimeout: 0.1

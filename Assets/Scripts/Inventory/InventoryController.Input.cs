@@ -52,6 +52,8 @@ public partial class InventoryController
     // Routes mouse buttons to inventory actions while keeping PlayerInputState independent of inventory details.
     private void HandleMouseClick(InventoryMouseButton button, InventoryClickModifiers modifiers)
     {
+        RefreshSelectedGridFromPointer(false);
+
         if (button == InventoryMouseButton.Right && inventoryCursor.HasItem)
         {
             FlipSelectedItem();

@@ -113,6 +113,8 @@ namespace StarterAssets
         {
             if (!CanAcceptInput) return;
 
+            RefreshPointerPositionFromCurrentDevice();
+
             bool wasHeld = clickHeld;
             clickHeld = value.isPressed;
             clickPressedThisFrame = !wasHeld && clickHeld;
@@ -202,7 +204,16 @@ namespace StarterAssets
         public void OnRightClick(InputValue value)
         {
             if (!CanAcceptInput || !value.isPressed) return;
+            RefreshPointerPositionFromCurrentDevice();
             OnMouseClick?.Invoke(InventoryMouseButton.Right, ReadInventoryClickModifiers());
+        }
+
+        // Snapshots the current pointer position before click callbacks use it for inventory grid lookup.
+        private void RefreshPointerPositionFromCurrentDevice()
+        {
+            Pointer pointer = Pointer.current;
+            if (pointer != null)
+                pointerPosition = pointer.position.ReadValue();
         }
 
         // Reads keyboard modifiers at the same moment as the mouse click.
