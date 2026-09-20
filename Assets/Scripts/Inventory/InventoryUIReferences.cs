@@ -61,15 +61,16 @@ public class InventoryUIReferences : MonoBehaviour
     // Finds the grid child used by the current prefab layout.
     private Transform FindGreyGrid(Transform panel)
     {
-        return panel != null ? FindDescendantByName(panel, "GreyGrid") : null;
+        return panel != null ? FindDescendantByName(panel, "GreyGrid", true) : null;
     }
 
     // Finds legacy prefab children by name until those references are wired directly in the Inspector.
-    private Transform FindDescendantByName(Transform root, string childName)
+    private Transform FindDescendantByName(Transform root, string childName, bool trimNames = false)
     {
         foreach (Transform child in root.GetComponentsInChildren<Transform>(true))
         {
-            if (child.name == childName)
+            string candidateName = trimNames ? child.name.Trim() : child.name;
+            if (candidateName == childName)
                 return child;
         }
 

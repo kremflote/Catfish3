@@ -79,22 +79,11 @@ public partial class InventoryController
             return;
         }
 
-        GameObject greyGrid = uiReferences != null ? uiReferences.GetGridObject(uiElement) : null;
-        if (greyGrid == null)
-        {
-            Debug.LogWarning($"GreyGrid not found as a child of {uiElement.name}.");
-            return;
-        }
-
-        GridInteract interact = greyGrid.GetComponent<GridInteract>();
+        GridInteract interact = EnsureGridInteract(uiElement);
         if (interact == null)
-        {
-            Debug.LogWarning($"GridInteract component missing on GreyGrid under {uiElement.name}.");
             return;
-        }
 
-        RegisterItemGrid(greyGrid.GetComponent<ItemGrid>());
-        inventoryVisibilityController.AddHUD(greyGrid);
+        inventoryVisibilityController.AddHUD(interact.gameObject);
     }
 
     // Registers a player inventory screen so it opens/closes with the inventory toggle.
@@ -117,27 +106,49 @@ public partial class InventoryController
             return;
         }
 
-        GameObject greyGrid = uiReferences != null ? uiReferences.GetGridObject(uiElement) : null;
-        if (greyGrid == null)
-            return;
-
-        GridInteract interact = greyGrid.GetComponent<GridInteract>();
+        GridInteract interact = EnsureGridInteract(uiElement);
         if (interact == null)
-        {
-            Debug.LogWarning($"GridInteract component missing on GreyGrid under {uiElement.name}.");
             return;
-        }
 
-        RegisterItemGrid(greyGrid.GetComponent<ItemGrid>());
-        inventoryVisibilityController.AddPlayerScreen(greyGrid);
+        inventoryVisibilityController.AddPlayerScreen(interact.gameObject);
     }
 
     // Finds the GridInteract component that reports pointer enter/exit to the inventory controller.
     private void InitializeGridInteract(Transform uiElement)
     {
-        gridInteract = uiReferences != null ? uiReferences.GetGridInteract(uiElement) : null;
-        if (gridInteract == null)
-            Debug.LogError("GridInteract component is missing on GreyGrid.");
+        gridInteract = EnsureGridInteract(uiElement);
+    }
+
+    // Registers every known inventory grid for direct pointer lookup, even if the panel is toggled elsewhere.
+    private void RegisterKnownInventoryGrids()
+    {
+        foreach (Transform screen in playerScreens)
+            EnsureGridInteract(screen);
+    }
+
+    // Adds the hover/click helper to valid grid objects when the prefab has not been wired manually.
+    private GridInteract EnsureGridInteract(Transform uiElement)
+    {
+        if (uiElement == null)
+            return null;
+
+        GameObject greyGrid = uiReferences != null ? uiReferences.GetGridObject(uiElement) : null;
+        if (greyGrid == null)
+            return null;
+
+        ItemGrid itemGrid = greyGrid.GetComponent<ItemGrid>();
+        if (itemGrid == null)
+        {
+            Debug.LogWarning($"GreyGrid under {uiElement.name} is missing ItemGrid.", this);
+            return null;
+        }
+
+        GridInteract interact = greyGrid.GetComponent<GridInteract>();
+        if (interact == null)
+            interact = greyGrid.AddComponent<GridInteract>();
+
+        RegisterItemGrid(itemGrid);
+        return interact;
     }
 
     // Debug/prototype helper for bulk registering every known inventory screen.
