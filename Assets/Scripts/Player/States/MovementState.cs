@@ -7,6 +7,7 @@ public class MovementState : LocomotionState
     {
     }
 
+    // Normal walking state; switches to crouch when crouch input is held.
     protected override void UpdateLocomotion()
     {
         if (pController.Input.crouch)

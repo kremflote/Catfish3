@@ -13,6 +13,7 @@ public class PlayerStateMachine : NetworkBehaviour
     [SerializeField] private string locomotionStateName;
     [SerializeField] private string overlayStateName;
 
+    // Starts the owner-side state machine in its initial locomotion state.
     public void Initialize(PlayerState startingState)
     {
         if (!IsOwner)
@@ -23,11 +24,13 @@ public class PlayerStateMachine : NetworkBehaviour
         startingState.Enter();
     }
 
+    // Backwards-compatible wrapper for older code that did not distinguish locomotion and overlay states.
     public void SwitchState(PlayerState newState)
     {
         SwitchLocomotionState(newState);
     }
 
+    // Replaces the movement/piloting state while preserving any overlay state such as inventory.
     public void SwitchLocomotionState(PlayerState newState)
     {
         if (!IsOwner)
@@ -39,6 +42,7 @@ public class PlayerStateMachine : NetworkBehaviour
         newState.Enter();
     }
 
+    // Starts a UI-style state that runs alongside locomotion instead of replacing it.
     public void SetOverlayState(PlayerState newState)
     {
         if (!IsOwner)
@@ -54,6 +58,7 @@ public class PlayerStateMachine : NetworkBehaviour
         newState.Enter();
     }
 
+    // Removes an overlay only if the caller is still the active overlay.
     public void ClearOverlayState(PlayerState state)
     {
         if (!IsOwner || CurrentOverlayState != state)
@@ -64,6 +69,7 @@ public class PlayerStateMachine : NetworkBehaviour
         overlayStateName = string.Empty;
     }
 
+    // Runs per-frame logic for both locomotion and overlay layers.
     public void Update()
     {
         if (!IsOwner)
@@ -73,6 +79,7 @@ public class PlayerStateMachine : NetworkBehaviour
         CurrentOverlayState?.Update();
     }
 
+    // Runs late-frame logic such as camera rotation after normal Update has processed input/state.
     public void LateUpdate()
     {
         if (!IsOwner)

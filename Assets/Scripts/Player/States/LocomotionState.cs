@@ -12,12 +12,14 @@ public abstract class LocomotionState : PlayerState
         this.selectionManager = selectionManager ?? controller.SelectionManager;
     }
 
+    // Ensures the body controller is active when entering any locomotion state.
     public override void Enter()
     {
         if (!pController.enabled)
             pController.enabled = true;
     }
 
+    // Shared locomotion loop: check overlays, update movement, then choose input/cursor behavior.
     public override void Update()
     {
         // Common player loop; concrete states only supply their movement mode.
@@ -35,6 +37,7 @@ public abstract class LocomotionState : PlayerState
         ApplyLocomotionInputMode();
     }
 
+    // Runs camera look after movement, unless inventory overlay has camera control locked.
     public override void LateUpdate()
     {
         if (pController.StateMachine.CurrentOverlayState is InventoryState)
@@ -43,13 +46,16 @@ public abstract class LocomotionState : PlayerState
         pController.CameraRotation();
     }
 
+    // Lets each locomotion state define whether movement means walking, crouching, or piloting.
     protected abstract void UpdateLocomotion();
 
+    // Updates the object under the crosshair; piloting states can extend this for cockpit controls.
     protected virtual void UpdateSelection()
     {
         selectionManager?.HandleSelection();
     }
 
+    // Chooses gameplay or world-interaction mode based on whether a draggable control is active.
     protected virtual void ApplyLocomotionInputMode()
     {
         PlayerInputMode mode = selectionManager != null && selectionManager.IsUsingWorldInteraction
@@ -59,6 +65,7 @@ public abstract class LocomotionState : PlayerState
         pController.ApplyInputMode(mode);
     }
 
+    // Opens the inventory overlay without replacing the locomotion state underneath it.
     private void UpdateInventoryOverlay()
     {
         // Inventory is an overlay, so it should not replace walking or piloting.

@@ -2,6 +2,7 @@ using UnityEngine;
 
 public partial class InventoryController
 {
+    // Finds the known inventory screen transforms under the player's canvas.
     private void ResolveInventoryScreens(Transform canvas)
     {
         if (expandableBotleft == null)
@@ -22,12 +23,13 @@ public partial class InventoryController
             hotbar = FindDescendantByName(canvas, "hotbar");
     }
 
+    // Builds the row highlight that marks which inventory row is mirrored into the hotbar.
     private void InitializeHotbarHighlight()
     {
         Transform player = transform.root;
 
         if (inventoryHotbarHighlight == null)
-            inventoryHotbarHighlight = player.GetComponentInChildren<MultipleHighlighter>(true);
+            inventoryHotbarHighlight = GetOrCreateHotbarHighlight();
 
         Transform canvas = canvasTransform != null ? canvasTransform : player.GetComponentInChildren<Canvas>(true)?.transform;
         if (canvas != null)
@@ -51,6 +53,20 @@ public partial class InventoryController
         inventoryHotbarHighlight.SetPosition(eblItemGrid, 0, 2);
     }
 
+    // Reuses an existing highlighter instance if present, otherwise creates one for hotbar-row highlighting.
+    private InventoryHighlighter GetOrCreateHotbarHighlight()
+    {
+        InventoryHighlighter[] highlighters = transform.root.GetComponentsInChildren<InventoryHighlighter>(true);
+        foreach (InventoryHighlighter highlighter in highlighters)
+        {
+            if (highlighter != null && highlighter != inventoryHighlight)
+                return highlighter;
+        }
+
+        return gameObject.AddComponent<InventoryHighlighter>();
+    }
+
+    // Registers HUD elements with the toggle manager so they hide while inventory screens are open.
     private void AddUIHUD(Transform uiElement)
     {
         if (inventoryToggleManager == null || uiElement == null)
@@ -61,6 +77,7 @@ public partial class InventoryController
         InitializeGridToHUD(uiElement);
     }
 
+    // Registers a grid that belongs to HUD mode, such as the always-visible hotbar.
     private void InitializeGridToHUD(Transform uiElement)
     {
         if (uiElement == null)
@@ -86,6 +103,7 @@ public partial class InventoryController
         inventoryToggleManager.AddHUD(greyGrid.gameObject);
     }
 
+    // Registers a player inventory screen so it opens/closes with the inventory toggle.
     private void AddUIInventory(Transform uiElement)
     {
         if (inventoryToggleManager == null || uiElement == null)
@@ -96,6 +114,7 @@ public partial class InventoryController
         InitializeGridToInventory(uiElement);
     }
 
+    // Registers the grid inside an inventory screen so clicks and hover can target it.
     private void InitializeGridToInventory(Transform uiElement)
     {
         if (uiElement == null)
@@ -118,6 +137,7 @@ public partial class InventoryController
         inventoryToggleManager.AddPlayerScreen(greyGrid.gameObject);
     }
 
+    // Finds the GridInteract component that reports pointer enter/exit to the inventory controller.
     private void InitializeGridInteract(Transform uiElement)
     {
         Transform greyGrid = FindDescendantByName(uiElement, "GreyGrid");
@@ -129,6 +149,7 @@ public partial class InventoryController
             Debug.LogError("GridInteract component is missing on GreyGrid.");
     }
 
+    // Debug/prototype helper for bulk registering every known inventory screen.
     private void InsertAllUIElements()
     {
         foreach (Transform screen in playerScreens)

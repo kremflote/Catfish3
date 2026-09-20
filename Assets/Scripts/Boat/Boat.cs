@@ -29,6 +29,7 @@ public class Boat : NetworkBehaviour, IDrivable
     private float _steerInput;
     private int currentPilotClientId = -1;
 
+    // Finds boat control parts in the prefab and starts with ignition off.
     private void Start()
     {
         ignitionKey = ignition1GO.GetComponent<IgnitionKey1>();
@@ -39,6 +40,7 @@ public class Boat : NetworkBehaviour, IDrivable
         wheel = wheelGO.GetComponent<Wheel>();
     }
 
+    // Server-side boat tick: validate ignition and move only when the engine is on.
     private void Update()
     {
         if (!IsServerInitialized && IsClientInitialized)
@@ -52,6 +54,7 @@ public class Boat : NetworkBehaviour, IDrivable
         MoveBoat(); // Apllies movement to boat based on boat variables
     }
 
+    // Records which client is currently allowed to control this boat.
     public void SetPilot(int clientId)
     {
         if (clientId < 0)
@@ -67,6 +70,7 @@ public class Boat : NetworkBehaviour, IDrivable
             SetPilotServerRpc(clientId);
     }
 
+    // Clears the active pilot if the same client stops piloting.
     public void ClearPilot(int clientId)
     {
         if (clientId < 0)
@@ -83,11 +87,13 @@ public class Boat : NetworkBehaviour, IDrivable
             ClearPilotServerRpc(clientId);
     }
 
+    // Allows unclaimed boats or the current pilot to control steering.
     public bool IsPilot(int clientId)
     {
         return currentPilotClientId < 0 || currentPilotClientId == clientId;
     }
 
+    // Accepts steering input locally or forwards it to the server in networked play.
     public void SetSteeringInput(float steerInput, int pilotClientId)
     {
         steerInput = Mathf.Clamp(steerInput, -1f, 1f);
@@ -103,12 +109,14 @@ public class Boat : NetworkBehaviour, IDrivable
             _steerInput = steerInput;
     }
 
+    // Server receives pilot claims and trusts the requesting connection when available.
     [ServerRpc(RequireOwnership = false)]
     private void SetPilotServerRpc(int clientId, NetworkConnection conn = null)
     {
         currentPilotClientId = conn != null && conn.IsValid ? conn.ClientId : clientId;
     }
 
+    // Server clears piloting only for the client that currently owns the pilot slot.
     [ServerRpc(RequireOwnership = false)]
     private void ClearPilotServerRpc(int clientId, NetworkConnection conn = null)
     {
@@ -118,6 +126,7 @@ public class Boat : NetworkBehaviour, IDrivable
             currentPilotClientId = -1;
     }
 
+    // Server receives steering and ignores it unless it came from the active pilot.
     [ServerRpc(RequireOwnership = false)]
     private void SetSteeringInputServerRpc(float steerInput, int pilotClientId, NetworkConnection conn = null)
     {
@@ -128,6 +137,7 @@ public class Boat : NetworkBehaviour, IDrivable
         _steerInput = Mathf.Clamp(steerInput, -1f, 1f);
     }
 
+    // Derives engine state from the interactable ignition key.
     private void CheckIgnition()
     {
         if (!ignitionKey.IsOn() && ignitionKey.IsIn())
@@ -140,6 +150,7 @@ public class Boat : NetworkBehaviour, IDrivable
         }
     }
 
+    // Applies simple prototype boat movement from gear, throttle, and steering wheel angle.
     private void MoveBoat()
     {
         // Determine direction based on current gear

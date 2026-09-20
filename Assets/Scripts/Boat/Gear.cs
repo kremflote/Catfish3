@@ -28,6 +28,7 @@ public class Gear : MovableObject
     public bool moved = false; // used to check if lever has been moved by player
     [SerializeField] private Boat boat;
 
+    // Sets up lever positions for Drive, Neutral, and Reverse relative to the starting transform.
     private void Start()
     {
         if (boat == null)
@@ -51,12 +52,14 @@ public class Gear : MovableObject
 
     }
 
+    // Keeps the lever moving toward the selected gear notch after the player releases it.
     private void Update()
     {
         UpdateGearTarget();
         MoveLeverToTarget();
     }
 
+    // Commits the nearest gear notch after the player drags/releases the lever.
     public void UpdateGearState()
     {
         if (IsServerInitialized)
@@ -72,6 +75,7 @@ public class Gear : MovableObject
             UpdateGearStateServerRpc();
     }
 
+    // Server commits gear changes and broadcasts the resulting lever state.
     [ServerRpc(RequireOwnership = false)]
     private void UpdateGearStateServerRpc()
     {
@@ -79,6 +83,7 @@ public class Gear : MovableObject
         SyncGearObserversRpc(transform.localPosition, currentGear, moved);
     }
 
+    // Chooses the nearest gear position based on the lever's current local position.
     private void UpdateGearStateLocal()
     {
         Vector3 leverPosition = transform.localPosition;
@@ -103,6 +108,8 @@ public class Gear : MovableObject
         }
 
     }
+
+    // Smoothly animates the lever to the target notch after a gear change.
     public void MoveLeverToTarget()
     {
         if (!moved)
@@ -123,6 +130,8 @@ public class Gear : MovableObject
             moved = false; // Movement complete
         }
     }
+
+    // Updates the target notch when currentGear changes.
     public void UpdateGearTarget()
     {
         // If gear has changed, update the target position
@@ -138,15 +147,19 @@ public class Gear : MovableObject
         Reverse,
         Neutral
     }
+    // Changes the logical gear; UpdateGearTarget moves the lever visual afterward.
     public void ChangeGear(GearState state)
     {
         currentGear = state;
     }
+
+    // Local/test overload for moving the lever without a known network pilot.
     public void Move(float mouseDeltaY)
     {
         Move(mouseDeltaY, -1);
     }
 
+    // Moves the gear lever from mouse drag, validating pilot authority before applying it.
     public void Move(float mouseDeltaY, int pilotClientId)
     {
         if (!CanPilotMove(pilotClientId))
@@ -165,6 +178,7 @@ public class Gear : MovableObject
             MoveServerRpc(mouseDeltaY, pilotClientId);
     }
 
+    // Server receives gear lever drag and syncs approved lever state to observers.
     [ServerRpc(RequireOwnership = false)]
     private void MoveServerRpc(float mouseDeltaY, int pilotClientId, NetworkConnection conn = null)
     {
@@ -176,11 +190,13 @@ public class Gear : MovableObject
         SyncGearObserversRpc(transform.localPosition, currentGear, moved);
     }
 
+    // Prevents non-pilots from moving this control when a boat has an active pilot.
     private bool CanPilotMove(int pilotClientId)
     {
         return boat == null || boat.IsPilot(pilotClientId);
     }
 
+    // FishNet sends the server-approved gear state to non-server clients.
     [ObserversRpc(ExcludeServer = true)]
     private void SyncGearObserversRpc(Vector3 localPosition, GearState gearState, bool isMoved)
     {
@@ -191,6 +207,7 @@ public class Gear : MovableObject
         UpdateTargetPosition(currentGear);
     }
 
+    // Converts mouse delta into a clamped lever position along the lever's forward axis.
     private void MoveLocal(float mouseDeltaY)
     {
         Vector3 offset = transform.forward * (mouseDeltaY / 2) * mouseSensitivity;
@@ -210,6 +227,8 @@ public class Gear : MovableObject
         Vector3 clampedPosition = basePosition + (forwardDir * clampedDistance);
         transform.localPosition = clampedPosition;
     }
+
+    // Steps the gear up one notch for future keyboard/controller support.
     public void UpGear()
     {
         if (currentGear == GearState.Neutral)
@@ -226,6 +245,7 @@ public class Gear : MovableObject
         }
     }
 
+    // Steps the gear down one notch for future keyboard/controller support.
     public void DownGear()
     {
         if (currentGear == GearState.Neutral)
@@ -242,6 +262,7 @@ public class Gear : MovableObject
         }
     }
 
+    // Maps a logical gear state to the lever's target local position.
     private void UpdateTargetPosition(GearState state)
     {
         switch (state)

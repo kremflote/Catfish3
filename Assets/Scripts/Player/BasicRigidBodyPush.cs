@@ -6,11 +6,13 @@ public class BasicRigidBodyPush : MonoBehaviour
 	public bool canPush;
 	[Range(0.5f, 5f)] public float strength = 1.1f;
 
+    // Unity calls this when the CharacterController bumps into something.
 	private void OnControllerColliderHit(ControllerColliderHit hit)
 	{
 		if (canPush) PushRigidBodies(hit);
 	}
 
+    // Applies a simple impulse to non-kinematic rigidbodies the player walks into.
 	private void PushRigidBodies(ControllerColliderHit hit)
 	{
 		// Lightweight physical push for simple props hit by the player controller.

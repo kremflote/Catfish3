@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cd3aae2bc6367a144b56af7ab19b1aea, type: 3}
   m_Name: RedFish
   m_EditorClassIdentifier: 
+  itemId: red_fish
   itemName: 
   itemIcon: {fileID: 21300000, guid: af698b9ff6e5c8d438d3a640801e6bb4, type: 3}
   width: 1

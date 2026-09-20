@@ -4,8 +4,7 @@ using UnityEngine;
 [CreateAssetMenu(menuName = "Item/Item Data")]
 public class ItemData : ScriptableObject
 {
-    // representasjon av et item i inventory
-
+    [SerializeField] private string itemId;
     public string itemName;
     public Sprite itemIcon;
     public int width = 1;
@@ -13,4 +12,22 @@ public class ItemData : ScriptableObject
     public bool equipable;
 
     public EquipableItem equipableData; // Reference to separate SO
+
+    public string ItemId => itemId;
+
+    // Unity editor hook: gives new item assets a stable ID if the designer has not typed one yet.
+    private void OnValidate()
+    {
+        if (string.IsNullOrWhiteSpace(itemId))
+            itemId = CreateDefaultId(name);
+    }
+
+    // Creates a readable default ID from the asset name, falling back to a GUID if there is no name.
+    private static string CreateDefaultId(string source)
+    {
+        if (string.IsNullOrWhiteSpace(source))
+            return Guid.NewGuid().ToString("N");
+
+        return source.Trim().ToLowerInvariant().Replace(" ", "_");
+    }
 }

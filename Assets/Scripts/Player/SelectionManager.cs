@@ -17,12 +17,14 @@ public class SelectionManager : NetworkBehaviour
 
     public bool IsUsingWorldInteraction { get; private set; }
 
+    // Initializes selection state and resolves shared player references.
     private void Start()
     {
         onTarget = false;
         ResolveContext();
     }
 
+    // Raycasts from the camera through the pointer to find the world object the player can interact with.
     public void HandleSelection()
     {
         if (IsUsingWorldInteraction)
@@ -66,6 +68,7 @@ public class SelectionManager : NetworkBehaviour
         ClearSelection();
     }
 
+    // Called by input when interact is pressed; runs the selected object's interaction behavior.
     public void OnInteract(UnityEngine.InputSystem.InputValue value)
     {
         if (onTarget && selectedObject != null)
@@ -80,6 +83,8 @@ public class SelectionManager : NetworkBehaviour
 
     private bool gearClicked = false;
     private MovableObject currentMovableObject;
+
+    // Checks whether the selected interactable is a draggable cockpit control.
     public void CheckMovableObject()
     {
         if (onTarget && selectedObject != null)
@@ -89,6 +94,7 @@ public class SelectionManager : NetworkBehaviour
         }
     }
 
+    // Routes held-click mouse movement to the active movable cockpit control.
     public void HandleMovableObject()
     {
         IsUsingWorldInteraction = false;
@@ -96,6 +102,7 @@ public class SelectionManager : NetworkBehaviour
         HandleThrottle();
     }
 
+    // Lets a held mouse drag move the throttle while temporarily disabling camera look.
     private void HandleThrottle()
     {
         if (currentMovableObject is Throttle throttle)
@@ -112,6 +119,7 @@ public class SelectionManager : NetworkBehaviour
         }
     }
 
+    // Lets a held mouse drag move the gear lever, then commits the nearest gear when released.
     private void HandleGear()
     {
         if (currentMovableObject is Gear gear)
@@ -138,18 +146,21 @@ public class SelectionManager : NetworkBehaviour
         }
     }
 
+    // Clears target state when the raycast no longer points at an interactable object.
     private void ClearSelection()
     {
         onTarget = false;
         selectedObject = null;
     }
 
+    // Gets the local FishNet client ID so boat controls can validate who is allowed to move them.
     private int GetInputOwnerClientId()
     {
         PlayerInputState input = context != null ? context.Input : null;
         return input != null && input.Owner.IsValid ? input.Owner.ClientId : -1;
     }
 
+    // Finds common player references through PlayerContext, creating it if the prefab is missing one.
     private void ResolveContext()
     {
         if (context == null)

@@ -5,10 +5,10 @@ using UnityEngine;
 public class ItemGrid : MonoBehaviour
 {   //This class handles icon behavour on the itemgrid gameobject it is placed on
 
-    // 2D array that keeps track of what item (if any) is in each grid slot; null means the slot is empty
-    public InventoryItem[,] inventoryItemSlot;
     // used for sizing and positioning in the UI
     RectTransform rectTransform;
+    private InventoryGridModel model;
+    private readonly Dictionary<InventoryItemEntry, InventoryItemUI> itemViews = new Dictionary<InventoryItemEntry, InventoryItemUI>();
     // mouse's position relative to grid
     Vector2 positionOnTheGrid = new Vector2();
     // Stores the calculated grid coordinates (tile X and Y) based on mouse position
@@ -22,6 +22,7 @@ public class ItemGrid : MonoBehaviour
     public const float tileSizeWidth = 70;
     public const float tileSizeHeight = 70;
     
+    // Unity calls this when the grid UI object wakes; it creates the backing model and sizes the RectTransform.
     void Awake()
     {
         rectTransform = GetComponent<RectTransform>();
@@ -38,57 +39,43 @@ public class ItemGrid : MonoBehaviour
         return gridSizeHeight;
     }
 
+    // Creates the non-visual grid model and makes the UI rectangle match the tile count.
     private void Init(int width, int heigth)
     {
-        inventoryItemSlot = new InventoryItem[width, heigth];
+        model = new InventoryGridModel(width, heigth);
         Vector2 size = new Vector2(width * tileSizeWidth, heigth * tileSizeHeight);
         rectTransform.sizeDelta = size;
     }
-    internal InventoryItem GetItem(int x, int y)
+
+    // Converts a model entry at a tile into its visible UI icon, if that icon exists.
+    public InventoryItemUI GetItemAt(int x, int y)
     {
-        if (!PositionCheck(x, y))
-            return null;
-
-        return inventoryItemSlot[x, y];
+        InventoryItemEntry entry = GetEntryAt(x, y);
+        return entry != null && itemViews.TryGetValue(entry, out InventoryItemUI item) ? item : null;
     }
-    public InventoryItem PickUpItem(int x, int y)
+
+    // Returns the data entry at a tile; this is the model-level version of GetItemAt.
+    public InventoryItemEntry GetEntryAt(int x, int y)
     {
-        if (!PositionCheck(x, y))
-            return null;
-
-        InventoryItem toReturn = inventoryItemSlot[x, y];
-
-        if (toReturn == null) { return null; }
-
-        // iterates through grid and clears the slot based on items width and length
-        GridClear(toReturn);
-        return toReturn;
+        return model.GetEntry(x, y);
     }
-    private void GridClear(InventoryItem item)
+
+    // Removes an item entry from the model and returns its UI icon so the cursor can hold it.
+    public InventoryItemUI PickUpItem(int x, int y)
     {
-        if (item == null)
-            return;
-
-        for (int ix = 0; ix < item.Width; ix++)
-        {
-            for (int iy = 0; iy < item.Height; iy++)
-            {
-                int x = item.GetonGridPositionX() + ix;
-                int y = item.GetonGridPositionY() + iy;
-
-                if (PositionCheck(x, y) && inventoryItemSlot[x, y] == item)
-                    inventoryItemSlot[x, y] = null;
-            }
-        }
+        InventoryItemEntry entry = model.PickUpEntry(x, y);
+        return entry != null && itemViews.TryGetValue(entry, out InventoryItemUI item) ? item : null;
     }
-    public bool PlaceItem(InventoryItem inventoryItem, int posX, int posY, out List<InventoryItem> overlappingItems)
+
+    // Validates placement first, returning any items that block the requested spot.
+    public bool PlaceItem(InventoryItemUI itemUI, int posX, int posY, out List<InventoryItemUI> overlappingItems)
     {
         overlappingItems = null;
-        if (inventoryItem == null)
+        if (itemUI == null)
             return false;
 
-        PlacementValidationResult checkResult = PlacementCheck(posX, posY, inventoryItem.Width, inventoryItem.Height);
-        overlappingItems = checkResult.overlappingItems;
+        InventoryPlacementResult checkResult = PlacementCheck(posX, posY, itemUI.Width, itemUI.Height);
+        overlappingItems = GetItemViews(checkResult.overlappingEntries);
 
         if (checkResult.outOfBounds)
         {
@@ -101,52 +88,44 @@ public class ItemGrid : MonoBehaviour
             return false;
         }
 
-        PlaceItem(inventoryItem, posX, posY);
+        PlaceItem(itemUI, posX, posY);
 
         return true;
     }
-    public void PlaceItem(InventoryItem inventoryItem, int posX, int posY)
+
+    // Places the model entry and moves the UI icon to the matching tile position.
+    public void PlaceItem(InventoryItemUI itemUI, int posX, int posY)
     {
-        if (inventoryItem == null || !PositionCheck(posX, posY, inventoryItem.Width, inventoryItem.Height))
+        if (itemUI == null)
             return;
 
-        // setter parameter inventoryItem parent til denne item gridden
-        RectTransform rectTransform = inventoryItem.GetComponent<RectTransform>();
+        InventoryItemEntry entry = itemUI.EnsureEntry();
+        if (entry == null || !PositionCheck(posX, posY, entry.Width, entry.Height))
+            return;
+
+        // Parent the icon under this grid so local UI coordinates match the tile layout.
+        RectTransform rectTransform = itemUI.GetComponent<RectTransform>();
         rectTransform.SetParent(this.rectTransform, false);
         rectTransform.localScale = Vector3.one;
 
-        // Updates the item�s own data to remember where it is on the grid (top-left corner position).
-        // Debug.Log($"Placing item at grid ({posX}, {posY}) with size {inventoryItem.Width}x{inventoryItem.Height}.");
-        inventoryItem.SetonGridPositionX(posX);
-        inventoryItem.SetonGridPositionY(posY);
+        model.PlaceEntry(entry, posX, posY);
+        itemViews[entry] = itemUI;
 
+        Vector2 position = CalculatePositionOnGrid(itemUI, posX, posY);
 
-        //Loops through every slot that the item should cover, x and y representing 2d grid
-        //Mark the grid cells as occupied by this item
-        for (int x = 0; x < inventoryItem.Width; x++)
-        {
-            for (int y = 0; y < inventoryItem.Height; y++)
-            {
-                inventoryItemSlot[posX + x, posY + y] = inventoryItem;
-                // Debug.Log($"Placing item at grid ({posX + x}, {posY + y}) with size {inventoryItem.Width}x{inventoryItem.Height}.");
-            }
-        }
-
-        // Position the item visually in the UI
-        // Vector2 keeps track of 2d grid positions
-        Vector2 position = CalculatePositionOnGrid(inventoryItem, posX, posY);
-
-        // finally use vector2 to set position of object
         rectTransform.localPosition = position;
-        // Debug.Log($"Placing item at grid ({posX}, {posY}) with size {inventoryItem.Width}x{inventoryItem.Height}, UI position: {position}");
     }
-    public Vector2 CalculatePositionOnGrid(InventoryItem inventoryItem, int posX, int posY)
+
+    // Calculates the icon center position for an item that may cover multiple tiles.
+    public Vector2 CalculatePositionOnGrid(InventoryItemUI itemUI, int posX, int posY)
     {
         Vector2 position = new Vector2();
-        position.x = posX * tileSizeWidth + tileSizeWidth * inventoryItem.Width / 2f;
-        position.y = -(posY * tileSizeHeight + tileSizeHeight * inventoryItem.Height / 2f);
+        position.x = posX * tileSizeWidth + tileSizeWidth * itemUI.Width / 2f;
+        position.y = -(posY * tileSizeHeight + tileSizeHeight * itemUI.Height / 2f);
         return position;
     }
+
+    // Calculates the icon center position for a single tile highlight.
     public Vector2 CalculatePositionOnGrid(int posX, int posY)
     {
         Vector2 position = new Vector2();
@@ -154,6 +133,8 @@ public class ItemGrid : MonoBehaviour
         position.y = -(posY * tileSizeHeight + tileSizeHeight / 2f);
         return position;
     }
+
+    // Converts a screen-space pointer position into tile coordinates inside this UI grid.
     public Vector2Int GetTileGridPosition(Vector2 mousePosition)
     {
         Camera eventCamera = GetEventCamera();
@@ -167,6 +148,7 @@ public class ItemGrid : MonoBehaviour
         return tileGridPosition;
     }
 
+    // Returns the camera needed by Unity UI coordinate conversion; overlay canvases use null.
     private Camera GetEventCamera()
     {
         Canvas canvas = GetComponentInParent<Canvas>();
@@ -177,207 +159,97 @@ public class ItemGrid : MonoBehaviour
 
         return canvas.worldCamera;
     }
-    public Vector2Int? FindSpaceForObject(InventoryItem itemToInsert)
+
+    // Asks the model for the first empty area that fits this item shape.
+    public Vector2Int? FindSpaceForObject(InventoryItemUI itemToInsert)
     {
-        if (itemToInsert == null || itemToInsert.Width > gridSizeWidth || itemToInsert.Height > gridSizeHeight)
-            return null;
-
-        int maxY = gridSizeHeight - itemToInsert.Height;
-        int maxX = gridSizeWidth - itemToInsert.Width;
-
-        for (int y = 0; y <= maxY; y++)
-        {
-            for (int x = 0; x <= maxX; x++)
-            {
-                if (CheckAvailableSpace(x, y, itemToInsert.Width, itemToInsert.Height) == true)
-                {
-                    return new Vector2Int(x, y);
-                }
-            }
-        }
-        return null;
+        InventoryItemEntry entry = itemToInsert != null ? itemToInsert.EnsureEntry() : null;
+        return model.FindSpaceForObject(entry);
     }
+
+    // Checks whether a rectangular item footprint can be placed at a tile.
     public bool CheckAvailableSpace(int posX, int posY, int width, int height)
     {
-        // bound check, if a coordinate is negative it is outside grid. we dont  want to acces outside grid
-        // that creates error
-        if (PositionCheck(posX, posY, width, height) == false)
+        return model.CheckAvailableSpace(posX, posY, width, height);
+    }
+
+    // Creates save-friendly data for every unique item currently in this grid.
+    public List<InventoryItemSnapshot> CreateSnapshot()
+    {
+        return model.CreateSnapshot();
+    }
+
+    // Clears the grid model and optionally destroys the UI item icons, used before loading a save.
+    public void ClearAllItems(bool destroyItemViews)
+    {
+        foreach (InventoryItemUI item in itemViews.Values)
         {
-            Debug.LogWarning($"Item does not fit within grid bounds at position ({posX}, {posY}) with size {width}x{height}.");
-            return false;
+            if (destroyItemViews && item != null)
+                Destroy(item.gameObject);
         }
 
-        for (int x = 0; x < width; x++)
-        {
-            for (int y = 0; y < height; y++)
-            {
-                if (inventoryItemSlot[posX + x, posY + y] != null)
-                {
-                    return false;
-                }
-            }
-        }
-        return true;
+        itemViews.Clear();
+        model.ClearAll();
     }
+
     public bool PositionCheck(int posX, int posY)
     {
-        // if a coordinate is negative it is outside grid
-        bool inBounds = !(posX < 0 || posY < 0 || posX >= gridSizeWidth || posY >= gridSizeHeight);
-    
-        return inBounds;
+        return model.PositionCheck(posX, posY);
     }
+
     public bool PositionCheck(int posX, int posY, int width, int height)
     {
-        // if a coordinate is negative it is outside grid
-        bool inBounds = !(posX < 0 || posY < 0 || posX + width > gridSizeWidth || posY + height > gridSizeHeight);
-
-        return inBounds;
+        return model.PositionCheck(posX, posY, width, height);
     }
-    bool OccupiedCheck(int posX, int posY) 
+
+    // Returns detailed placement info for highlights and swap behavior.
+    public InventoryPlacementResult PlacementCheck(int posX, int posY, int width, int height)
     {
-        if (!PositionCheck(posX, posY))
-        {
-            return false;
-        }
-
-        return inventoryItemSlot[posX, posY] != null;
+        return model.PlacementCheck(posX, posY, width, height);
     }
-    public PlacementValidationResult PlacementCheck(int posX, int posY, int width, int height)
-    {
-        PlacementValidationResult result = new PlacementValidationResult();
 
-        // Initial assumption: no overflow
-        result.overflowX = 0;
-        result.overflowY = 0;
-
-        // Calculate bottom-right corner of item
-        int bottomRightX = posX + width - 1;
-        int bottomRightY = posY + height - 1;
-
-        // Check bounds for the whole area
-        bool fullyInBounds = IsFullyInBounds(posX, posY, width, height);
-        result.outOfBounds = !fullyInBounds;
-
-        // If out of bounds, calculate overflow
-        if (result.outOfBounds)
-        {
-            CalculateOverflow(posX, posY, width, height, ref result);
-        }
-
-        // Collision check (only if in bounds)
-        result.collisionWithObject = false;
-        if (fullyInBounds)
-        {
-            List<InventoryItem> overlapItems = null;
-            result.collisionWithObject = HasCollision(posX, posY, width, height, out overlapItems);
-            result.overlappingItems = overlapItems;
-
-
-        }
-
-        return result;
-    }
-    bool IsFullyInBounds(int posX, int posY, int width, int height)
-    {
-        // Top-left
-        if (!PositionCheck(posX, posY))
-        {
-            return false;
-        }
-
-        // Bottom-right
-        int bottomRightX = posX + width - 1;
-        int bottomRightY = posY + height - 1;
-
-        if (!PositionCheck(bottomRightX, bottomRightY))
-        {
-            return false;
-        }
-
-        return true;
-    }
-    bool HasCollision(int posX, int posY, int width, int height, out List<InventoryItem> overlapItems)
-    {
-        overlapItems = new List<InventoryItem>();
-        HashSet<InventoryItem> uniqueItems = new HashSet<InventoryItem>();
-
-        for (int x = 0; x < width; x++)
-        {
-            for (int y = 0; y < height; y++)
-            {
-                int checkX = posX + x;
-                int checkY = posY + y;
-
-                if (OccupiedCheck(checkX, checkY))
-                {
-                    var item = inventoryItemSlot[checkX, checkY];
-                    if (item != null && !uniqueItems.Contains(item))
-                    {
-                        uniqueItems.Add(item);
-                        overlapItems.Add(item);
-                    }
-                }
-            }
-        }
-
-        return overlapItems.Count > 0;
-    }
-    void CalculateOverflow(int posX, int posY, int width, int height, ref PlacementValidationResult result)
-    {
-        int bottomRightX = posX + width - 1;
-        int bottomRightY = posY + height - 1;
-
-        // X overflow
-        if (posX < 0)
-        {
-            result.overflowX = posX; // negative = how far left it's off
-        }
-        else if (bottomRightX >= gridSizeWidth)
-        {
-            result.overflowX = bottomRightX - (gridSizeWidth - 1); // how far right it's off
-        }
-
-        // Y overflow
-        if (posY < 0)
-        {
-            result.overflowY = posY; // negative = how far above it's off
-        }
-        else if (bottomRightY >= gridSizeHeight)
-        {
-            result.overflowY = bottomRightY - (gridSizeHeight - 1); // how far below it's off
-        }
-    }
+    // Clears whichever item occupies a specific tile in the grid.
     internal void ClearSlot(int i, int targetRow)
     {
-        // Safety check to avoid index out of bounds
-        if (i < 0 || i >= inventoryItemSlot.GetLength(0) ||
-            targetRow < 0 || targetRow >= inventoryItemSlot.GetLength(1))
-        {
+        ClearEntry(model.GetEntry(i, targetRow));
+    }
 
+    // Clears an item view from the model while leaving the icon object alive.
+    internal void ClearItem(InventoryItemUI item)
+    {
+        if (item == null)
             return;
+
+        ClearEntry(item.EnsureEntry());
+    }
+
+    // Clears an entry from the backing model; the UI lookup remains so pickup/replace can reuse the icon.
+    internal void ClearEntry(InventoryItemEntry entry)
+    {
+        model.ClearEntry(entry);
+    }
+
+    // Converts model collision entries back into UI icons for controller-level swap logic.
+    private List<InventoryItemUI> GetItemViews(List<InventoryItemEntry> entries)
+    {
+        if (entries == null || entries.Count == 0)
+            return null;
+
+        List<InventoryItemUI> items = new List<InventoryItemUI>();
+        foreach (InventoryItemEntry entry in entries)
+        {
+            if (entry != null && itemViews.TryGetValue(entry, out InventoryItemUI item))
+                items.Add(item);
         }
 
-        ClearItem(inventoryItemSlot[i, targetRow]);
-    }
-
-    internal void ClearItem(InventoryItem item)
-    {
-        GridClear(item);
-    }
-    public struct PlacementValidationResult
-    {
-        public bool outOfBounds;
-        public bool collisionWithObject;
-        public int overflowX; // how much it overflows on X axis (0 = no overflow)
-        public int overflowY; // how much it overflows on Y axis (0 = no overflow)
-        public List<InventoryItem> overlappingItems;
+        return items;
     }
     public struct PlacementOutcome
     {
         public bool success;
-        public InventoryItem overlappingItem;
+        public InventoryItemUI overlappingItem;
 
-        public PlacementOutcome(bool success, InventoryItem overlappingItem)
+        public PlacementOutcome(bool success, InventoryItemUI overlappingItem)
         {
             this.success = success;
             this.overlappingItem = overlappingItem;

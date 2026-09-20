@@ -1,8 +1,8 @@
 using UnityEngine;
-using static ItemGrid;
 
 public partial class InventoryController
 {
+    // Updates the tile highlight so the player can see what slot or item the cursor is targeting.
     private void HandleHighlight()
     {
         Vector2 position = GetPointerPosition();
@@ -18,7 +18,7 @@ public partial class InventoryController
 
         if (selectedItem == null && selectedItemGrid != null)
         {
-            highlightItem = selectedItemGrid.GetItem(positionOnGrid.x, positionOnGrid.y);
+            highlightItem = selectedItemGrid.GetItemAt(positionOnGrid.x, positionOnGrid.y);
 
             if (highlightItem != null)
             {
@@ -38,7 +38,7 @@ public partial class InventoryController
         }
         else if (selectedItem != null)
         {
-            PlacementValidationResult results = selectedItemGrid.PlacementCheck(
+            InventoryPlacementResult results = selectedItemGrid.PlacementCheck(
                 positionOnGrid.x,
                 positionOnGrid.y,
                 selectedItem.Width,
@@ -58,6 +58,7 @@ public partial class InventoryController
         }
     }
 
+    // Converts pointer screen position into grid tile coordinates, with held-item centering applied.
     private Vector2Int GetMouseTileGridPosition()
     {
         Vector2 mousePosition = GetPointerPosition();
@@ -68,6 +69,7 @@ public partial class InventoryController
         return GetTileGridPosition(mousePosition);
     }
 
+    // Shifts the pointer so multi-tile items are placed by their top-left tile instead of their visual center.
     private void AdjustMousePosition(ref Vector2 position)
     {
         float canvasScale = GetCanvasScaleFactor();
@@ -75,6 +77,7 @@ public partial class InventoryController
         position.y += (selectedItem.Height - 1) * ItemGrid.tileSizeHeight * canvasScale / 2f;
     }
 
+    // Moves the held item icon out of the grid and back under the canvas so it can follow the cursor freely.
     private void SetParentToCanvas()
     {
         Transform selectedItemTransform = selectedItem.transform;
@@ -90,12 +93,14 @@ public partial class InventoryController
         selectedItemTransform.localScale = Vector3.one;
     }
 
+    // Caches the RectTransform for the item currently being dragged.
     private void UpdateHeldItemIcon()
     {
         if (selectedItem != null)
             rectTransform = selectedItem.GetComponent<RectTransform>();
     }
 
+    // Moves the held item icon to the current pointer position each frame.
     private void HandleItemIconDrag()
     {
         if (selectedItem == null)
@@ -117,6 +122,7 @@ public partial class InventoryController
         rectTransform.localPosition = localPoint;
     }
 
+    // Returns the camera used for UI coordinate conversion; overlay canvases intentionally use null.
     private Camera GetCanvasEventCamera()
     {
         Canvas canvas = canvasTransform != null ? canvasTransform.GetComponent<Canvas>() : null;
@@ -126,27 +132,32 @@ public partial class InventoryController
         return canvas.worldCamera;
     }
 
+    // Accounts for Canvas scaling so grid math stays correct at different UI scale settings.
     private float GetCanvasScaleFactor()
     {
         Canvas canvas = canvasTransform != null ? canvasTransform.GetComponent<Canvas>() : null;
         return canvas != null ? canvas.scaleFactor : 1f;
     }
 
+    // Treats no selected grid as "off grid" for click and highlight logic.
     private bool IsPointerOffGrid()
     {
         return selectedItemGrid == null;
     }
 
+    // Safely asks the active grid to convert a screen position into a grid tile.
     private Vector2Int GetTileGridPosition(Vector2 position)
     {
         return selectedItemGrid?.GetTileGridPosition(position) ?? Vector2Int.zero;
     }
 
+    // Reads the pointer from PlayerInputState so inventory does not talk directly to Unity's mouse API.
     private Vector2 GetPointerPosition()
     {
         return playerInputState != null ? playerInputState.pointerPosition : Vector2.zero;
     }
 
+    // Finds named children in prefab UI hierarchies where references may not be wired manually.
     private Transform FindDescendantByName(Transform root, string childName)
     {
         if (root == null)

@@ -11,6 +11,7 @@ public class InventoryToggleManager : MonoBehaviour
     [SerializeField] private PlayerInputState playerInputState;
 
 
+    // Subscribes to the player's Tab/input event when this manager becomes active.
     void OnEnable()
     {
         if (playerInputState == null)
@@ -20,6 +21,7 @@ public class InventoryToggleManager : MonoBehaviour
             playerInputState.OnTabPressed += ToggleInventory;
     }
 
+    // Unsubscribes so disabled UI managers do not continue toggling screens.
     void OnDisable()
     {
         if (playerInputState != null)
@@ -36,6 +38,7 @@ public class InventoryToggleManager : MonoBehaviour
         InitializeReferences();
     }
 
+    // Finds PlayerInputState on the spawned player hierarchy.
     private void InitializeReferences()
     {
         if (playerInputState == null)
@@ -45,6 +48,7 @@ public class InventoryToggleManager : MonoBehaviour
             Debug.LogWarning("PlayerInputState reference is missing.", this);
     }
 
+    // Opens/closes registered inventory screens and inversely toggles the normal HUD.
     void ToggleInventory()
     {
         if (playerScreens == null)
@@ -62,6 +66,8 @@ public class InventoryToggleManager : MonoBehaviour
         }
         ToggleHUD(!isOpen);
     }
+
+    // Registers an always-visible HUD element, such as the hotbar, so it can hide while inventory is open.
     public void AddHUD(GameObject hudToAdd)
     {
         if (hudToAdd == null)
@@ -83,6 +89,8 @@ public class InventoryToggleManager : MonoBehaviour
         }
 
     }
+
+    // Removes a HUD element from the toggle list when UI is rebuilt or no longer relevant.
     public void RemoveHUD(GameObject hudToRemove)
     {
         if (hudToRemove == null) return;
@@ -96,6 +104,8 @@ public class InventoryToggleManager : MonoBehaviour
             Debug.LogWarning($"{hudToRemove.name} was not found in the HUD list.");
         }
     }
+
+    // Shows or hides every registered HUD element together.
     public void ToggleHUD(bool show)
     {
         isHUDVisible = show;
@@ -111,6 +121,8 @@ public class InventoryToggleManager : MonoBehaviour
             }
         }
     }
+
+    // Removes a full-screen inventory panel from the open/close list.
     public void RemovePlayerScreen(GameObject screenToRemove)
     {
         if (playerScreens == null || screenToRemove == null) return;
@@ -126,6 +138,8 @@ public class InventoryToggleManager : MonoBehaviour
             Debug.LogWarning($"Screen {screenToRemove.name} was not found in playerScreens.");
         }
     }
+
+    // Registers an inventory screen so it follows the inventory open/close state.
     public void AddPlayerScreen(GameObject screenToAdd)
     {
         if (screenToAdd == null)

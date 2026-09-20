@@ -113,6 +113,7 @@ namespace StarterAssets
         public SelectionManager SelectionManager => selectionManager;
         public bool IsCrouched => isCrouched;
 
+        // FishNet calls this when the player exists on this client; only the owner initializes local control.
 		public override void OnStartClient()
 		{
             base.OnStartClient();
@@ -141,6 +142,8 @@ namespace StarterAssets
                 ApplyInputMode(PlayerInputMode.Gameplay);
             }
         }
+
+        // Stores the original capsule dimensions so crouch can return to the correct standing shape.
         private void CacheStandingCollider()
         {
             if (_controller == null)
@@ -152,6 +155,7 @@ namespace StarterAssets
             targetColliderCenter = standingCenter;
         }
 
+        // Resolves references from PlayerContext instead of relying entirely on Inspector wiring.
         private void InitializeComponents()
         {
             Transform playerRoot = transform.root;
@@ -193,6 +197,8 @@ namespace StarterAssets
             if (stateMachine == null)
                 Debug.LogError("PlayerStateMachine reference is missing.", this);
         }
+
+        // Starts or stops crouch by choosing the target collider height/center for the smooth transition.
         public void SetCrouched(bool shouldCrouch)
         {
             if (_controller == null || isCrouched == shouldCrouch)
@@ -215,12 +221,14 @@ namespace StarterAssets
             targetColliderCenter = standingCenter;
         }
 
+        // Placeholder for future ceiling checks; currently standing is always allowed.
         public bool CanStand()
         {
             // Crouch keeps the capsule top stable and raises the bottom, so standing only extends downward.
             return true;
         }
 
+        // Applies a named input mode so player states own cursor lock, camera look, and interaction access.
         public void ApplyInputMode(PlayerInputMode mode)
         {
             currentInputMode = mode;
@@ -239,6 +247,7 @@ namespace StarterAssets
             }
         }
 
+        // Applies the actual input/cursor flags behind a higher-level PlayerInputMode.
         private void ApplyInputSettings(bool cursorLocked, bool lookEnabled, bool interactEnabled, bool rotationEnabled)
         {
             wantsCursorLocked = cursorLocked;
@@ -251,12 +260,14 @@ namespace StarterAssets
             _input.SetInteractInputEnabled(interactEnabled);
         }
 
+        // Sets Unity's global cursor state to match the active player mode.
         private void ApplyCursorState()
         {
             Cursor.lockState = wantsCursorLocked ? CursorLockMode.Locked : CursorLockMode.None;
             Cursor.visible = !wantsCursorLocked;
         }
 
+        // Owner-only per-frame maintenance for crouch animation and cursor lock recovery.
         private void Update()
         {
             if (!IsOwner)
@@ -266,6 +277,7 @@ namespace StarterAssets
             EnsureCursorState();
         }
 
+        // Smoothly animates CharacterController height/center toward standing or crouched values.
         private void UpdateCrouchTransition()
         {
             if (_controller == null)
@@ -277,12 +289,14 @@ namespace StarterAssets
             _controller.center = Vector3.MoveTowards(_controller.center, targetColliderCenter, heightStep);
         }
 
+        // Reapplies cursor lock after alt-tab or focus changes.
         private void OnApplicationFocus(bool hasFocus)
         {
             if (hasFocus && IsOwner)
                 EnsureCursorState();
         }
 
+        // Repairs cursor state if Unity or the OS changes it outside our input-mode flow.
         private void EnsureCursorState()
         {
             CursorLockMode expectedLockState = wantsCursorLocked ? CursorLockMode.Locked : CursorLockMode.None;
@@ -291,6 +305,8 @@ namespace StarterAssets
             if (Cursor.lockState != expectedLockState || Cursor.visible != expectedVisible)
                 ApplyInputMode(currentInputMode);
         }
+
+        // Parents the player to a boat while standing on it so the player moves with the boat.
         public void UpdatePlayerParent()
         {
             // Keep the player root attached to a boat while standing on it.
@@ -319,6 +335,8 @@ namespace StarterAssets
             }
             playerRootTransform.SetParent(null);
         }
+
+        // Checks whether the character is grounded using the capsule bottom instead of only Unity's built-in flag.
         public void GroundedCheck()
 		{
             if (_controller == null)
@@ -333,6 +351,8 @@ namespace StarterAssets
             Vector3 spherePosition = footPosition + transform.up * checkRadius + Vector3.down * GroundedOffset;
 			Grounded = _controller.isGrounded || Physics.CheckSphere(spherePosition, checkRadius, GroundLayers, QueryTriggerInteraction.Ignore);
 		}
+
+        // Rotates the body horizontally and the Cinemachine target vertically from look input.
         public void CameraRotation()
 		{
 			if (!canRotate)
@@ -348,6 +368,8 @@ namespace StarterAssets
 				transform.Rotate(Vector3.up * _rotationVelocity);
 			}
 		}
+
+        // Moves the CharacterController using cached input, sprint/crouch speed, and current vertical velocity.
         public void Move()
 		{
 			// CharacterController movement kept from Starter Assets, used by MovementState.
@@ -374,6 +396,8 @@ namespace StarterAssets
 			}
 			_controller.Move(inputDirection.normalized * (_speed * Time.deltaTime) + new Vector3(0.0f, _verticalVelocity, 0.0f) * Time.deltaTime);
 		}
+
+        // Applies jump impulse and gravity, including small timers that make jumps and step-offs feel smoother.
         public void JumpAndGravity()
 		{
 			if (Grounded)
@@ -406,6 +430,8 @@ namespace StarterAssets
 				_verticalVelocity += Gravity * Time.deltaTime;
 			}
 		}
+
+        // Calculates useful world-space points for the CharacterController capsule.
         private void GetCapsulePoints(float height, Vector3 center, out Vector3 bottom, out Vector3 top, out float radius)
         {
             radius = Mathf.Max(0.01f, _controller.radius * 0.95f);
@@ -417,12 +443,15 @@ namespace StarterAssets
             top = worldCenter + capsuleOffset;
         }
 
+        // Keeps camera pitch inside a readable range and handles angle wrapping.
 		private static float ClampAngle(float lfAngle, float lfMin, float lfMax)
 		{
 			if (lfAngle < -360f) lfAngle += 360f;
 			if (lfAngle > 360f) lfAngle -= 360f;
 			return Mathf.Clamp(lfAngle, lfMin, lfMax);
 		}
+
+        // Draws the grounded probe in the Scene view to make collider tuning easier.
         private void OnDrawGizmosSelected()
 		{
 			Color transparentGreen = new Color(0.0f, 1.0f, 0.0f, 0.35f);

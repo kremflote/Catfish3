@@ -2,6 +2,7 @@ using UnityEngine;
 
 public partial class InventoryController
 {
+    // Copies the configured inventory row into the hotbar model before inventory closes.
     internal void UpdateHotbar()
     {
         if (mainItemGrid == null)
@@ -24,7 +25,7 @@ public partial class InventoryController
 
         int hotbarRow = 2;
         int hotbarTargetRow = 0;
-        int width = mainItemGrid.inventoryItemSlot.GetLength(0);
+        int width = mainItemGrid.GetGridSizeWidth();
         bool[] occupied = new bool[width];
 
         for (int i = 0; i < width; i++)
@@ -35,17 +36,18 @@ public partial class InventoryController
             if (occupied[i])
                 continue;
 
-            InventoryItem item = mainItemGrid.inventoryItemSlot[i, hotbarRow];
+            InventoryItemEntry entry = mainItemGrid.GetEntryAt(i, hotbarRow);
+            InventoryItemUI item = mainItemGrid.GetItemAt(i, hotbarRow);
 
-            if (item != null && item.Height <= 1)
+            if (entry != null && entry.Height <= 1)
             {
-                for (int j = 0; j < item.Width; j++)
+                for (int j = 0; j < entry.Width; j++)
                 {
                     if (i + j < width)
                         occupied[i + j] = true;
                 }
 
-                hotbarController.SetInventoryItemSlot(item, i, hotbarTargetRow);
+                hotbarController.SetInventoryEntrySlot(entry, item, i, hotbarTargetRow);
             }
             else
             {
@@ -56,6 +58,7 @@ public partial class InventoryController
         hotbarController.SetHotbar();
     }
 
+    // Restores the hotbar model back into the inventory row before inventory opens.
     internal void UpdateInventoryFromHotbar()
     {
         if (hotbarController == null)
@@ -67,7 +70,7 @@ public partial class InventoryController
         if (hotbarController.IsHotbarEmpty())
             return;
 
-        int hotbarWidth = hotbarController.GetHotbarItems().GetLength(0);
+        int hotbarWidth = hotbarController.GetHotbarEntries().GetLength(0);
 
         if (mainItemGrid == null)
         {
@@ -75,12 +78,12 @@ public partial class InventoryController
             return;
         }
 
-        int mainGridWidth = mainItemGrid.inventoryItemSlot.GetLength(0);
+        int mainGridWidth = mainItemGrid.GetGridSizeWidth();
         int targetRow = 2;
 
         for (int i = 0; i < mainGridWidth; i++)
         {
-            InventoryItem existingItem = mainItemGrid.inventoryItemSlot[i, targetRow];
+            InventoryItemUI existingItem = mainItemGrid.GetItemAt(i, targetRow);
 
             if (existingItem != null && existingItem.GetonGridPositionY() == targetRow)
                 mainItemGrid.ClearItem(existingItem);
@@ -88,18 +91,19 @@ public partial class InventoryController
 
         for (int i = 0; i < hotbarWidth; i++)
         {
-            InventoryItem item = hotbarController.GetHotbarItems()[i, 0];
-            if (item == null)
+            InventoryItemEntry entry = hotbarController.GetHotbarEntries()[i, 0];
+            InventoryItemUI item = hotbarController.GetItemView(entry);
+            if (entry == null || item == null)
                 continue;
 
             int targetColumn = i;
-            if (targetColumn + item.Width <= mainGridWidth)
+            if (targetColumn + entry.Width <= mainGridWidth)
             {
                 mainItemGrid.PlaceItem(item, targetColumn, targetRow);
             }
             else
             {
-                Debug.LogWarning($"Item '{item.itemData.name}' doesn't fit at ({targetColumn}, {targetRow}) in main grid.");
+                Debug.LogWarning($"Item '{entry.ItemData.name}' doesn't fit at ({targetColumn}, {targetRow}) in main grid.");
             }
         }
     }

@@ -17,11 +17,13 @@ public class PlayerContext : MonoBehaviour
     public FirstPersonController FirstPersonController => firstPersonController;
     public Camera MainCamera => mainCamera;
 
+    // Resolves references as soon as Unity creates this component.
     private void Awake()
     {
         ResolveReferences();
     }
 
+    // Finds important player components once so other scripts do not repeat hierarchy searches.
     public void ResolveReferences()
     {
         if (input == null)

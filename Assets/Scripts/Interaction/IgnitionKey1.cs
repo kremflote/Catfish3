@@ -13,6 +13,7 @@ public class IgnitionKey1 : InteractableObject
 
     public BoatController BoatController;
 
+    // Called by SelectionManager when the player interacts with the ignition key.
     public override void Interact(PlayerContext playerContext, SelectionManager selectionManager)
     {
         Debug.Log("Interacting with Ignition Key 1");
@@ -20,6 +21,7 @@ public class IgnitionKey1 : InteractableObject
         ToggleIgnition(playerContext, selectionManager);
     }
 
+    // Inserts the key visual the first time the player interacts with this ignition.
     private void HandleKeyInsertion()
     {
         if (!isIn)
@@ -33,11 +35,13 @@ public class IgnitionKey1 : InteractableObject
         }
     }
 
+    // Placeholder for later inventory/key validation; currently every interaction can insert the key.
     private bool TryInsertKey()
     {
         return true;
     }
 
+    // Forces the key into the inserted state, useful for scripted setup or future inventory logic.
     public void InsertKey()
     {
         isIn = true;
@@ -55,6 +59,7 @@ public class IgnitionKey1 : InteractableObject
         return isIn;
     }
 
+    // Toggles piloting/walking state and rotates the key visual to match the ignition state.
     public void ToggleIgnition(PlayerContext playerContext, SelectionManager selectionManager)
     {
         if (playerContext == null || playerContext.StateMachine == null || playerContext.FirstPersonController == null)

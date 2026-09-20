@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cd3aae2bc6367a144b56af7ab19b1aea, type: 3}
   m_Name: YellowFish
   m_EditorClassIdentifier: 
+  itemId: yellow_fish
   width: 3
   height: 3
   itemIcon: {fileID: 21300000, guid: 1670114a59848864eb25a7fc10714ff4, type: 3}

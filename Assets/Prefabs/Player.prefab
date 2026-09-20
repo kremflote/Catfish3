@@ -959,7 +959,6 @@ GameObject:
   - component: {fileID: 5617081134049608614}
   - component: {fileID: 2223873068320506783}
   - component: {fileID: 3774149635137966657}
-  - component: {fileID: 2885921468868124130}
   m_Layer: 0
   m_Name: MainCamera
   m_TagString: MainCamera
@@ -1132,12 +1131,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   selectedItemGrid: {fileID: 0}
-  items:
-  - {fileID: 11400000, guid: 7591baa870291a9419aec5402061f348, type: 2}
-  - {fileID: 11400000, guid: c03954e38de209e42a2292cbd968e2e0, type: 2}
-  - {fileID: 11400000, guid: c01548f20e64ab040a95534c1543a04c, type: 2}
-  - {fileID: 11400000, guid: a7343c69dfedb9b48a744035405ea20c, type: 2}
-  - {fileID: 11400000, guid: 07e69ddf2ad2c424daddc1c36acf7850, type: 2}
+  itemDatabase: {fileID: 11400000, guid: 5f6697bc3d8d402fa3961f89dd3d81a6, type: 2}
   itemPrefab: {fileID: 3579055318759952443, guid: f7b5da05df3a602419f41add21a883e9, type: 3}
   canvasTransform: {fileID: 1442657769171012273}
 --- !u!114 &3774149635137966657
@@ -1153,20 +1147,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   highlighter: {fileID: 2103006853366085381}
---- !u!114 &2885921468868124130
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6687037434783411328}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c8ffafae00ca62b4da5dcf39105b2ebc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  width: 0
-  hotbarHighlighters: []
 --- !u!1 &7247987815856212092
 GameObject:
   m_ObjectHideFlags: 0

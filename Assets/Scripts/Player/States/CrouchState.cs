@@ -7,17 +7,20 @@ public class CrouchState : LocomotionState
     {
     }
 
+    // Shrinks the player capsule when crouch state begins.
     public override void Enter()
     {
         base.Enter();
         pController.SetCrouched(true);
     }
 
+    // Restores the standing capsule when leaving crouch.
     public override void Exit()
     {
         pController.SetCrouched(false);
     }
 
+    // Keeps moving with crouch speed, then returns to normal movement when crouch is released.
     protected override void UpdateLocomotion()
     {
         if (!pController.Input.crouch && pController.CanStand())

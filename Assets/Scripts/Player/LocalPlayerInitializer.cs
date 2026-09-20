@@ -15,6 +15,7 @@ public class LocalPlayerInitializer : NetworkBehaviour
     [SerializeField] private GameObject canvasGO;
     [SerializeField] private GameObject managersGO;
 
+    // FishNet calls this per client; only the owning clone gets cameras, input, and UI enabled.
     public override void OnStartClient()
     {
 
@@ -33,6 +34,7 @@ public class LocalPlayerInitializer : NetworkBehaviour
         EnablePlayerComponents();
     }
 
+    // Finds the child objects that start disabled on networked player prefabs.
     private void ResolveReferences()
     {
         if (mainCameraGO == null)
@@ -53,6 +55,8 @@ public class LocalPlayerInitializer : NetworkBehaviour
             managersGO = inventoryToggleManager != null ? inventoryToggleManager.transform.parent.gameObject : null;
         }
     }
+
+    // Enables the Cinemachine follow camera for the local player only.
     private void EnablePlayerFollowCameraComponents()
     {
         if (playerFollowCamera == null)
@@ -62,6 +66,7 @@ public class LocalPlayerInitializer : NetworkBehaviour
         if (cinemachineVirtualCamera != null) cinemachineVirtualCamera.enabled = true;
     }
 
+    // Enables the real camera/audio/UI-driving components for the local player.
     private void EnableMainCameraComponents()
     {
         if (mainCameraGO == null)
@@ -82,13 +87,11 @@ public class LocalPlayerInitializer : NetworkBehaviour
         var inventoryController = mainCameraGO.GetComponent<InventoryController>();
         if (inventoryController != null) inventoryController.enabled = true;
 
-        var singleHighlighter = mainCameraGO.GetComponent<SingleHighlighter>();
-        if (singleHighlighter != null) singleHighlighter.enabled = true;
-
-        var multipleHighlighter = mainCameraGO.GetComponent<MultipleHighlighter>();
-        if (multipleHighlighter != null) multipleHighlighter.enabled = true;
+        foreach (InventoryHighlighter inventoryHighlighter in mainCameraGO.GetComponents<InventoryHighlighter>())
+            inventoryHighlighter.enabled = true;
     }
 
+    // Enables the physical player body and input receiver on the owning clone.
     private void EnablePlayerCapsuleComponents()
     {
         if (playerCapsuleGO == null)
@@ -110,6 +113,7 @@ public class LocalPlayerInitializer : NetworkBehaviour
         if (playerInputState != null) playerInputState.enabled = true;
     }
 
+    // Enables root-level player systems that should only run for the owner.
     private void EnablePlayerComponents()
     {
         PlayerContext context = GetComponent<PlayerContext>();
@@ -127,6 +131,7 @@ public class LocalPlayerInitializer : NetworkBehaviour
             stateMachine.enabled = true;
     }
 
+    // Enables the local UI canvas so only the owning player sees and clicks their own inventory/HUD.
     private void EnableCanvasComponents()
     {
         if (canvasGO == null)
@@ -142,6 +147,7 @@ public class LocalPlayerInitializer : NetworkBehaviour
         if (raycaster != null) raycaster.enabled = true;
     }
 
+    // Enables inventory/hotbar/equipment managers on the owner so remote clones do not process local UI.
     private void EnableManagerComponents()
     {
         if (managersGO == null)

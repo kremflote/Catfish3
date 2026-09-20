@@ -9,6 +9,7 @@ public class GridInteract : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
     private ItemGrid itemGrid;
     public bool pointerOnGrid;
 
+    // Finds the grid and inventory controller this hover detector should report to.
     private void Awake()
     {
         pointerOnGrid = false;
@@ -21,6 +22,7 @@ public class GridInteract : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
             Debug.LogWarning("InventoryController reference is missing.", this);
     }
 
+    // Unity UI calls this when the pointer enters the grid; inventory clicks should now target this grid.
     public void OnPointerEnter(PointerEventData eventData)
     {
         if (inventoryController == null)
@@ -31,6 +33,7 @@ public class GridInteract : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
         pointerOnGrid = true;
     }
 
+    // Unity UI calls this when the pointer leaves the grid; inventory clicks should stop targeting it.
     public void OnPointerExit(PointerEventData eventData)
     {
         if (inventoryController == null)

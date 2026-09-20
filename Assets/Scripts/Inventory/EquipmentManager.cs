@@ -6,9 +6,22 @@ public class EquipmentManager : MonoBehaviour
 
     [SerializeField] public Transform PlayerCapsule;
 
-    public void EquipItem(InventoryItem item)
+    // Backwards-compatible entry point for code that still passes the UI item.
+    public void EquipItem(InventoryItemUI item)
     {
-        EquipableItem equipable = item.itemData.equipableData;
+        EquipEntry(item != null ? item.EnsureEntry() : null);
+    }
+
+    // Equips from the runtime item instance, which keeps equipment independent of inventory UI.
+    public void EquipEntry(InventoryItemEntry entry)
+    {
+        EquipItemData(entry != null ? entry.ItemData : null);
+    }
+
+    // Spawns the held/equipped world model defined by ItemData's equipable data.
+    public void EquipItemData(ItemData itemData)
+    {
+        EquipableItem equipable = itemData != null ? itemData.equipableData : null;
 
         if (currentEquippedModel != null)
         {
@@ -26,6 +39,7 @@ public class EquipmentManager : MonoBehaviour
         }
     }
 
+    // Removes the currently equipped model from the player.
     public void Unequip()
     {
         if (currentEquippedModel != null)

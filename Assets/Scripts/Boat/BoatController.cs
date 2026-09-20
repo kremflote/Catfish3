@@ -14,6 +14,7 @@ public class BoatController : NetworkBehaviour
     private int pilotClientId = -1;
 
 
+    // Gives the boat controller references from setup code without requiring direct Inspector wiring.
     public void Initialize(InventoryToggleManager inventoryToggleManager, PlayerStateMachine stateMachine)
     {
         this.inventoryToggleManager = inventoryToggleManager;
@@ -21,6 +22,7 @@ public class BoatController : NetworkBehaviour
 
     }
 
+    // Converts local player movement input into steering input for the boat.
     public void Steer()
     {
         if (boat == null || _input == null) {
@@ -32,6 +34,7 @@ public class BoatController : NetworkBehaviour
         boat.SetSteeringInput(steerInput, pilotClientId);
     }
 
+    // Starts reading input from the player who entered piloting mode.
     public void BeginPiloting(PlayerInputState input)
     {
         _input = input;
@@ -41,6 +44,7 @@ public class BoatController : NetworkBehaviour
             boat.SetPilot(pilotClientId);
     }
 
+    // Releases the pilot slot so the boat stops accepting this player's steering input.
     public void EndPiloting()
     {
         if (boat != null)

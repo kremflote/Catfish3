@@ -20,6 +20,7 @@ public class Throttle : MovableObject
     private Vector3 basePosition;
     [SerializeField] private Boat boat;
 
+    // Caches the lever's rest position and finds the owning boat.
     private void Start()
     {
         if (boat == null)
@@ -30,11 +31,13 @@ public class Throttle : MovableObject
         minPositionOffset = -0.1f;
     }
 
+    // Local/test overload for moving the throttle without a known network pilot.
     public void Move(float mouseDeltaY)
     {
         Move(mouseDeltaY, -1);
     }
 
+    // Moves the throttle lever from mouse drag, validating pilot authority before changing boat input.
     public void Move(float mouseDeltaY, int pilotClientId)
     {
         if (!CanPilotMove(pilotClientId))
@@ -53,6 +56,7 @@ public class Throttle : MovableObject
             MoveServerRpc(mouseDeltaY, pilotClientId);
     }
 
+    // Server receives throttle drag and syncs the resulting lever/throttle state to observers.
     [ServerRpc(RequireOwnership = false)]
     private void MoveServerRpc(float mouseDeltaY, int pilotClientId, NetworkConnection conn = null)
     {
@@ -64,11 +68,13 @@ public class Throttle : MovableObject
         SyncThrottleObserversRpc(transform.localPosition, _throttleApplied, _throttleValue);
     }
 
+    // Prevents non-pilots from moving this control when a boat has an active pilot.
     private bool CanPilotMove(int pilotClientId)
     {
         return boat == null || boat.IsPilot(pilotClientId);
     }
 
+    // FishNet sends the server-approved throttle state to non-server clients.
     [ObserversRpc(ExcludeServer = true)]
     private void SyncThrottleObserversRpc(Vector3 localPosition, float throttleApplied, float throttleValue)
     {
@@ -77,6 +83,7 @@ public class Throttle : MovableObject
         _throttleValue = throttleValue;
     }
 
+    // Converts mouse delta into a clamped lever position along the lever's forward axis.
     private void MoveLocal(float mouseDeltaY)
     {
         Vector3 offset = transform.forward * (mouseDeltaY / 2) * mouseSensitivity;
@@ -99,11 +106,13 @@ public class Throttle : MovableObject
         UpdateThrottleFromLever();
     }
 
+    // Keeps throttle value in sync if the lever position changes outside direct drag input.
     void Update()
     {
         UpdateThrottleFromLever();
     }
 
+    // Projects lever offset into a normalized throttle value used by Boat movement.
     private void UpdateThrottleFromLever()
     {
 

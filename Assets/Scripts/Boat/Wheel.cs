@@ -7,6 +7,7 @@ public class Wheel : NetworkBehaviour
     public float _currentAngle = 0f;
     [SerializeField] private Transform steeringWheel;
 
+    // Finds the visual steering wheel child if it was not assigned in the Inspector.
     private void Start()
     {
         if (steeringWheel == null)
@@ -18,6 +19,7 @@ public class Wheel : NetworkBehaviour
         }
     }
 
+    // Keeps the wheel mesh matched to the current steering angle.
     private void Update()
     {
         if (steeringWheel == null)
@@ -26,6 +28,7 @@ public class Wheel : NetworkBehaviour
         steeringWheel.localRotation = Quaternion.Euler(0f, _currentAngle, 0f);
     }
 
+    // Sets an absolute wheel angle and syncs that visual state to observers when running on the server.
     public void SetAngle(float angle)
     {
         if (IsServerInitialized)
@@ -38,6 +41,7 @@ public class Wheel : NetworkBehaviour
         SetAngleLocal(angle);
     }
 
+    // Adds steering input to the current wheel angle and syncs it in networked play.
     public void AddAngle(float angle)
     {
         if (IsServerInitialized)
@@ -50,12 +54,14 @@ public class Wheel : NetworkBehaviour
         SetAngleLocal(_currentAngle + angle);
     }
 
+    // FishNet sends server wheel angle changes to non-server clients.
     [ObserversRpc(ExcludeServer = true)]
     private void SyncAngleObserversRpc(float angle)
     {
         SetAngleLocal(angle);
     }
 
+    // Stores the angle and applies the visual rotation in one place.
     private void SetAngleLocal(float angle)
     {
         _currentAngle = angle;
@@ -68,6 +74,7 @@ public class Wheel : NetworkBehaviour
     }
 
 
+    // Rotates the steering wheel mesh without changing gameplay state.
     private void ApplyVisualRotation(float angle)
     {
         if (steeringWheel == null)
