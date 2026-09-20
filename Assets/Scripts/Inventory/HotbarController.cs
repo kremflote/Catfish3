@@ -7,6 +7,7 @@ using StarterAssets;
 public class HotbarController : MonoBehaviour
 {
     [SerializeField] private PlayerInputState playerInputState;
+    [SerializeField] private InventoryUIReferences uiReferences;
     [SerializeField] private ItemGrid itemGrid;
     [SerializeField] private InventoryHighlighter singleHighlighter;
     [SerializeField] private EquipmentManager equipmentManager;
@@ -29,12 +30,17 @@ public class HotbarController : MonoBehaviour
         if (singleHighlighter == null)
             singleHighlighter = player.GetComponentInChildren<InventoryHighlighter>(true);
 
+        if (uiReferences == null)
+            uiReferences = player.GetComponentInChildren<InventoryUIReferences>(true);
+
         if (itemGrid == null)
         {
             Transform canvas = player.GetComponentInChildren<Canvas>(true)?.transform;
-            Transform hotbar = FindDescendantByName(canvas, "hotbar");
-            Transform greyGrid = FindDescendantByName(hotbar, "GreyGrid");
-            itemGrid = greyGrid != null ? greyGrid.GetComponent<ItemGrid>() : null;
+            if (uiReferences == null && canvas != null)
+                uiReferences = canvas.gameObject.AddComponent<InventoryUIReferences>();
+
+            uiReferences?.ResolveMissingReferences(canvas);
+            itemGrid = uiReferences != null ? uiReferences.GetItemGrid(uiReferences.Hotbar) : null;
         }
 
         if (playerInputState == null)
@@ -233,20 +239,4 @@ public class HotbarController : MonoBehaviour
         if (playerInputState != null)
             playerInputState.OnHotbarKeyPressed -= HandleHotbarKeyPress;
     }
-
-    // Finds nested UI objects by name when prefab references are not assigned by hand.
-    private Transform FindDescendantByName(Transform root, string childName)
-    {
-        if (root == null)
-            return null;
-
-        foreach (Transform child in root.GetComponentsInChildren<Transform>(true))
-        {
-            if (child.name == childName)
-                return child;
-        }
-
-        return null;
-    }
-
 }

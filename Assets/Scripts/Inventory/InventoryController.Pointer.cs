@@ -6,7 +6,9 @@ public partial class InventoryController
     private void HandleHighlight()
     {
         Vector2 position = GetPointerPosition();
-        if (selectedItem != null)
+        InventoryItemUI heldItem = inventoryCursor.HeldItem;
+
+        if (heldItem != null)
             AdjustMousePosition(ref position);
 
         Vector2Int positionOnGrid = selectedItemGrid.GetTileGridPosition(position);
@@ -16,7 +18,7 @@ public partial class InventoryController
             return;
         }
 
-        if (selectedItem == null && selectedItemGrid != null)
+        if (heldItem == null && selectedItemGrid != null)
         {
             highlightItem = selectedItemGrid.GetItemAt(positionOnGrid.x, positionOnGrid.y);
 
@@ -36,13 +38,13 @@ public partial class InventoryController
                 inventoryHighlight.SetPosition(selectedItemGrid, positionOnGrid.x, positionOnGrid.y);
             }
         }
-        else if (selectedItem != null)
+        else if (heldItem != null)
         {
             InventoryPlacementResult results = selectedItemGrid.PlacementCheck(
                 positionOnGrid.x,
                 positionOnGrid.y,
-                selectedItem.Width,
-                selectedItem.Height);
+                heldItem.Width,
+                heldItem.Height);
 
             if (results.outOfBounds)
             {
@@ -51,9 +53,9 @@ public partial class InventoryController
             else
             {
                 inventoryHighlight.Show(true);
-                inventoryHighlight.SetSize(selectedItem);
+                inventoryHighlight.SetSize(heldItem);
                 inventoryHighlight.SetParent(selectedItemGrid);
-                inventoryHighlight.SetPosition(selectedItemGrid, selectedItem, positionOnGrid.x, positionOnGrid.y);
+                inventoryHighlight.SetPosition(selectedItemGrid, heldItem, positionOnGrid.x, positionOnGrid.y);
             }
         }
     }
@@ -63,7 +65,7 @@ public partial class InventoryController
     {
         Vector2 mousePosition = GetPointerPosition();
 
-        if (selectedItem != null)
+        if (inventoryCursor.HasItem)
             AdjustMousePosition(ref mousePosition);
 
         return GetTileGridPosition(mousePosition);
@@ -73,53 +75,12 @@ public partial class InventoryController
     private void AdjustMousePosition(ref Vector2 position)
     {
         float canvasScale = GetCanvasScaleFactor();
-        position.x -= (selectedItem.Width - 1) * ItemGrid.tileSizeWidth * canvasScale / 2f;
-        position.y += (selectedItem.Height - 1) * ItemGrid.tileSizeHeight * canvasScale / 2f;
-    }
-
-    // Moves the held item icon out of the grid and back under the canvas so it can follow the cursor freely.
-    private void SetParentToCanvas()
-    {
-        Transform selectedItemTransform = selectedItem.transform;
-
-        Transform canvas = canvasTransform != null ? canvasTransform : selectedItemTransform.GetComponentInParent<Canvas>(true)?.transform;
-        if (canvas == null)
-        {
-            Debug.LogError("Canvas reference is missing.", this);
-            return;
-        }
-
-        selectedItemTransform.SetParent(canvas, false);
-        selectedItemTransform.localScale = Vector3.one;
-    }
-
-    // Caches the RectTransform for the item currently being dragged.
-    private void UpdateHeldItemIcon()
-    {
-        if (selectedItem != null)
-            rectTransform = selectedItem.GetComponent<RectTransform>();
-    }
-
-    // Moves the held item icon to the current pointer position each frame.
-    private void HandleItemIconDrag()
-    {
-        if (selectedItem == null)
+        InventoryItemUI heldItem = inventoryCursor.HeldItem;
+        if (heldItem == null)
             return;
 
-        RectTransform canvasRect = canvasTransform as RectTransform;
-        if (canvasRect == null)
-        {
-            rectTransform.position = GetPointerPosition();
-            return;
-        }
-
-        RectTransformUtility.ScreenPointToLocalPointInRectangle(
-            canvasRect,
-            GetPointerPosition(),
-            GetCanvasEventCamera(),
-            out Vector2 localPoint);
-
-        rectTransform.localPosition = localPoint;
+        position.x -= (heldItem.Width - 1) * ItemGrid.tileSizeWidth * canvasScale / 2f;
+        position.y += (heldItem.Height - 1) * ItemGrid.tileSizeHeight * canvasScale / 2f;
     }
 
     // Returns the camera used for UI coordinate conversion; overlay canvases intentionally use null.
@@ -157,18 +118,4 @@ public partial class InventoryController
         return playerInputState != null ? playerInputState.pointerPosition : Vector2.zero;
     }
 
-    // Finds named children in prefab UI hierarchies where references may not be wired manually.
-    private Transform FindDescendantByName(Transform root, string childName)
-    {
-        if (root == null)
-            return null;
-
-        foreach (Transform child in root.GetComponentsInChildren<Transform>(true))
-        {
-            if (child.name == childName)
-                return child;
-        }
-
-        return null;
-    }
 }

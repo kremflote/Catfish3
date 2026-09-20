@@ -1,6 +1,6 @@
 <mxfile host="Electron" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/28.0.4 Chrome/138.0.7204.97 Electron/37.2.1 Safari/537.36">
   <diagram name="Page-1" id="SFWJsMrDQfJNYLuXt6e-">
-    <mxGraphModel dx="1497" dy="1828" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+    <mxGraphModel dx="2737" dy="3223" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -214,15 +214,16 @@
         </mxCell>
         <UserObject label="" tooltip="needs this to pickup, drag and rotate ui elements in the grid" id="n5n4LlxRXR-YF48Y8tIj-114">
           <mxCell edge="1" parent="1" source="n5n4LlxRXR-YF48Y8tIj-64" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" target="n5n4LlxRXR-YF48Y8tIj-96">
-            <mxGeometry relative="1" as="geometry" />
+            <mxGeometry relative="1" as="geometry">
+              <Array as="points">
+                <mxPoint x="580.03" y="830.03" />
+                <mxPoint x="580.03" y="980.03" />
+              </Array>
+            </mxGeometry>
           </mxCell>
         </UserObject>
-        <mxCell id="n5n4LlxRXR-YF48Y8tIj-118" edge="1" parent="1" source="n5n4LlxRXR-YF48Y8tIj-64" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="n5n4LlxRXR-YF48Y8tIj-108">
-          <mxGeometry relative="1" as="geometry">
-            <Array as="points">
-              <mxPoint x="660.03" y="810" />
-            </Array>
-          </mxGeometry>
+        <mxCell id="n5n4LlxRXR-YF48Y8tIj-124" edge="1" parent="1" source="n5n4LlxRXR-YF48Y8tIj-64" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="n5n4LlxRXR-YF48Y8tIj-121">
+          <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <UserObject label="InventoryController" tooltip="InventoryController.cs - main/core file.&lt;div&gt;Owns the important references and main inventory behavior:&lt;/div&gt;&lt;div&gt;- current selected grid&lt;/div&gt;&lt;div&gt;- currently held InventoryItemUI&lt;/div&gt;&lt;div&gt;- item creation&lt;/div&gt;&lt;div&gt;- pickup/place/swap&lt;/div&gt;&lt;div&gt;- rotate held item&lt;/div&gt;&lt;div&gt;- cancel pickup&lt;/div&gt;&lt;div&gt;- save/load JSON&lt;/div&gt;&lt;div&gt;- finding the right placement grid&lt;/div&gt;&lt;div&gt;This is basically the “inventory orchestrator.”&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;InventoryController.Input.cs&lt;/div&gt;&lt;div&gt;This file connects inventory actions to PlayerInputState.&lt;/div&gt;&lt;div&gt;It subscribes to events like:&lt;/div&gt;&lt;div&gt;- Q create random item&lt;/div&gt;&lt;div&gt;- U create and insert random item&lt;/div&gt;&lt;div&gt;- left click pickup/place&lt;/div&gt;&lt;div&gt;- right click rotate&lt;/div&gt;&lt;div&gt;This keeps Unity input callback stuff out of the main inventory logic.&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;InventoryController.Pointer.cs&lt;/div&gt;&lt;div&gt;This handles cursor/pointer behavior.&lt;/div&gt;&lt;div&gt;It does things like:&lt;/div&gt;&lt;div&gt;- move the held item icon with the mouse&lt;/div&gt;&lt;div&gt;- convert pointer position into grid tile position&lt;/div&gt;&lt;div&gt;- adjust pointer position for multi-tile items&lt;/div&gt;&lt;div&gt;- update hover/placement highlight&lt;/div&gt;&lt;div&gt;- move picked-up items back under the canvas while dragged&lt;/div&gt;&lt;div&gt;This is the most UI-feeling part of the controller.&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;InventoryController.UI.cs&lt;/div&gt;&lt;div&gt;This wires inventory UI pieces together.&lt;/div&gt;&lt;div&gt;It finds/registers:&lt;/div&gt;&lt;div&gt;- inventory panels&lt;/div&gt;&lt;div&gt;- HUD panels&lt;/div&gt;&lt;div&gt;- hotbar panel&lt;/div&gt;&lt;div&gt;- GreyGrid&lt;/div&gt;&lt;div&gt;- GridInteract&lt;/div&gt;&lt;div&gt;- hotbar highlight row&lt;/div&gt;&lt;div&gt;This file is mostly prefab setup glue.&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;InventoryController.HotbarSync.cs&lt;/div&gt;&lt;div&gt;This syncs the inventory grid with the hotbar.&lt;/div&gt;&lt;div&gt;It does two directions:&lt;/div&gt;&lt;div&gt;inventory row -&amp;gt; hotbar&lt;/div&gt;&lt;div&gt;hotbar -&amp;gt; inventory row&lt;/div&gt;&lt;div&gt;Specifically, it treats row 2 in the main inventory grid as the row mirrored into the hotbar.&lt;/div&gt;" id="n5n4LlxRXR-YF48Y8tIj-64">
           <mxCell parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontColor=#009900;noLabel=0;collapsible=0;metaEdit=0;" vertex="1">
@@ -322,26 +323,30 @@
             <mxPoint x="500" y="920" as="sourcePoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="n5n4LlxRXR-YF48Y8tIj-117" edge="1" parent="1" source="n5n4LlxRXR-YF48Y8tIj-108" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;fontColor=#999999;fillColor=#f9f7ed;strokeColor=#D6D15C;" target="n5n4LlxRXR-YF48Y8tIj-69">
-          <mxGeometry relative="1" as="geometry">
-            <Array as="points" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="n5n4LlxRXR-YF48Y8tIj-119" edge="1" parent="1" source="n5n4LlxRXR-YF48Y8tIj-108" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="n5n4LlxRXR-YF48Y8tIj-96">
-          <mxGeometry relative="1" as="geometry">
-            <Array as="points">
-              <mxPoint x="510" y="1050" />
-            </Array>
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="n5n4LlxRXR-YF48Y8tIj-108" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontColor=#009900;" value="HotbarController" vertex="1">
-          <mxGeometry height="40" width="120" x="600" y="1040" as="geometry" />
-        </mxCell>
         <UserObject label="&lt;p&gt;InventoryHighlighter&lt;/p&gt;" tooltip="UI Component&lt;div&gt;Draws Highlight effect and invalid effect inside inventory grid&lt;/div&gt;" id="n5n4LlxRXR-YF48Y8tIj-120">
           <mxCell parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontColor=#009900;" vertex="1">
             <mxGeometry height="40" width="120" x="440" y="880" as="geometry" />
           </mxCell>
         </UserObject>
+        <mxCell id="n5n4LlxRXR-YF48Y8tIj-122" edge="1" parent="1" source="n5n4LlxRXR-YF48Y8tIj-121" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;curved=0;strokeColor=#CCFFCC;" target="n5n4LlxRXR-YF48Y8tIj-69">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="670.03" y="1060" />
+            </Array>
+            <mxPoint x="600" y="1060" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="n5n4LlxRXR-YF48Y8tIj-123" edge="1" parent="1" source="n5n4LlxRXR-YF48Y8tIj-121" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="n5n4LlxRXR-YF48Y8tIj-96">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="660.03" y="1050.03" />
+              <mxPoint x="510.03" y="1050.03" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="n5n4LlxRXR-YF48Y8tIj-121" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontColor=#009900;" value="HotbarController" vertex="1">
+          <mxGeometry height="40" width="120" x="600" y="800" as="geometry" />
+        </mxCell>
       </root>
     </mxGraphModel>
   </diagram>

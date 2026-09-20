@@ -69,7 +69,7 @@ public abstract class LocomotionState : PlayerState
     private void UpdateInventoryOverlay()
     {
         // Inventory is an overlay, so it should not replace walking or piloting.
-        if (pController.InventoryToggleManager.GetIsOpen())
+        if (pController.InventoryVisibilityController.IsOpen)
             pController.StateMachine.SetOverlayState(new InventoryState(pController));
     }
 }

@@ -9,15 +9,15 @@ public class BoatController : NetworkBehaviour
 
     public PlayerStateMachine stateMachine { get; private set; }
     public PlayerInputState _input { get; set; }
-    public InventoryToggleManager inventoryToggleManager;
+    public InventoryVisibilityController inventoryVisibilityController;
     public Boat boat;
     private int pilotClientId = -1;
 
 
     // Gives the boat controller references from setup code without requiring direct Inspector wiring.
-    public void Initialize(InventoryToggleManager inventoryToggleManager, PlayerStateMachine stateMachine)
+    public void Initialize(InventoryVisibilityController inventoryVisibilityController, PlayerStateMachine stateMachine)
     {
-        this.inventoryToggleManager = inventoryToggleManager;
+        this.inventoryVisibilityController = inventoryVisibilityController;
         this.stateMachine = stateMachine;
 
     }

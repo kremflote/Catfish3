@@ -45,7 +45,15 @@ public class ItemDatabase : ScriptableObject
                 continue;
 
             if (!itemsById.ContainsKey(item.ItemId))
+            {
                 itemsById.Add(item.ItemId, item);
+            }
+            else
+            {
+                Debug.LogWarning(
+                    $"Duplicate item id '{item.ItemId}' found on '{item.name}'. Save/load will use the first item with that id.",
+                    this);
+            }
         }
     }
 
@@ -53,5 +61,20 @@ public class ItemDatabase : ScriptableObject
     private void OnValidate()
     {
         itemsById = null;
+        ValidateItemIds();
+    }
+
+    // Warns designers early when two item assets would resolve to the same saved item id.
+    private void ValidateItemIds()
+    {
+        HashSet<string> seenIds = new HashSet<string>();
+        foreach (ItemData item in items)
+        {
+            if (item == null || string.IsNullOrWhiteSpace(item.ItemId))
+                continue;
+
+            if (!seenIds.Add(item.ItemId))
+                Debug.LogWarning($"Duplicate item id '{item.ItemId}' found in {name}.", this);
+        }
     }
 }

@@ -19,7 +19,7 @@ public class InventoryState : PlayerState
     // Keeps inventory input mode active until the UI closes, then removes this overlay state.
     public override void Update()
     {
-        if (!pController.InventoryToggleManager.GetIsOpen())
+        if (!pController.InventoryVisibilityController.IsOpen)
         {
             pController.StateMachine.ClearOverlayState(this);
             return;

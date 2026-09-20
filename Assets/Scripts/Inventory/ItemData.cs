@@ -9,6 +9,7 @@ public class ItemData : ScriptableObject
     public Sprite itemIcon;
     public int width = 1;
     public int height = 1;
+    public int maxStack = 1;
     public bool equipable;
 
     public EquipableItem equipableData; // Reference to separate SO
@@ -20,6 +21,10 @@ public class ItemData : ScriptableObject
     {
         if (string.IsNullOrWhiteSpace(itemId))
             itemId = CreateDefaultId(name);
+
+        width = Mathf.Max(1, width);
+        height = Mathf.Max(1, height);
+        maxStack = Mathf.Max(1, maxStack);
     }
 
     // Creates a readable default ID from the asset name, falling back to a GUID if there is no name.

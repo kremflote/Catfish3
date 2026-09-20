@@ -93,6 +93,46 @@ public class ItemGrid : MonoBehaviour
         return true;
     }
 
+    // Tries to merge a held item into the stack under a specific tile.
+    public bool TryStackItemAt(InventoryItemUI sourceItem, int posX, int posY)
+    {
+        InventoryItemEntry sourceEntry = sourceItem != null ? sourceItem.EnsureEntry() : null;
+        InventoryItemEntry targetEntry = model.GetEntry(posX, posY);
+
+        if (!TryMoveQuantity(sourceEntry, targetEntry))
+            return false;
+
+        RefreshItemView(sourceEntry);
+        RefreshItemView(targetEntry);
+        return true;
+    }
+
+    // Tries to top up all matching stacks already in this grid before using empty space.
+    public bool TryStackIntoExistingItems(InventoryItemUI sourceItem)
+    {
+        InventoryItemEntry sourceEntry = sourceItem != null ? sourceItem.EnsureEntry() : null;
+        if (sourceEntry == null || !sourceEntry.IsStackable)
+            return false;
+
+        bool movedAny = false;
+        foreach (InventoryItemEntry targetEntry in model.GetEntries())
+        {
+            if (sourceEntry.IsEmpty)
+                break;
+
+            if (TryMoveQuantity(sourceEntry, targetEntry))
+            {
+                movedAny = true;
+                RefreshItemView(targetEntry);
+            }
+        }
+
+        if (movedAny)
+            RefreshItemView(sourceEntry);
+
+        return sourceEntry.IsEmpty;
+    }
+
     // Places the model entry and moves the UI icon to the matching tile position.
     public void PlaceItem(InventoryItemUI itemUI, int posX, int posY)
     {
@@ -244,6 +284,23 @@ public class ItemGrid : MonoBehaviour
 
         return items;
     }
+
+    // Moves quantity between compatible stacks, leaving item placement untouched.
+    private bool TryMoveQuantity(InventoryItemEntry sourceEntry, InventoryItemEntry targetEntry)
+    {
+        if (sourceEntry == null || targetEntry == null || sourceEntry == targetEntry)
+            return false;
+
+        return sourceEntry.TransferQuantityTo(targetEntry) > 0;
+    }
+
+    // Updates a visible item icon after its underlying entry changes quantity.
+    private void RefreshItemView(InventoryItemEntry entry)
+    {
+        if (entry != null && itemViews.TryGetValue(entry, out InventoryItemUI item))
+            item.Refresh();
+    }
+
     public struct PlacementOutcome
     {
         public bool success;

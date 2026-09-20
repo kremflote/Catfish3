@@ -5,22 +5,16 @@ public partial class InventoryController
     // Finds the known inventory screen transforms under the player's canvas.
     private void ResolveInventoryScreens(Transform canvas)
     {
-        if (expandableBotleft == null)
-            expandableBotleft = FindDescendantByName(canvas, "expandable_botleft");
-        if (expandableBotright == null)
-            expandableBotright = FindDescendantByName(canvas, "expandable_botright");
-        if (expandableTopleft == null)
-            expandableTopleft = FindDescendantByName(canvas, "expandable_topleft");
-        if (expandableTopright == null)
-            expandableTopright = FindDescendantByName(canvas, "expandable_topright");
-        if (playerScreen == null)
-            playerScreen = FindDescendantByName(canvas, "player_screen");
-        if (worldScreen == null)
-            worldScreen = FindDescendantByName(canvas, "world_screen");
-        if (itemDescriptionScreen == null)
-            itemDescriptionScreen = FindDescendantByName(canvas, "item_description_screen");
-        if (hotbar == null)
-            hotbar = FindDescendantByName(canvas, "hotbar");
+        uiReferences.ResolveMissingReferences(canvas);
+
+        expandableBotleft = expandableBotleft != null ? expandableBotleft : uiReferences.ExpandableBotleft;
+        expandableBotright = expandableBotright != null ? expandableBotright : uiReferences.ExpandableBotright;
+        expandableTopleft = expandableTopleft != null ? expandableTopleft : uiReferences.ExpandableTopleft;
+        expandableTopright = expandableTopright != null ? expandableTopright : uiReferences.ExpandableTopright;
+        playerScreen = playerScreen != null ? playerScreen : uiReferences.PlayerScreen;
+        worldScreen = worldScreen != null ? worldScreen : uiReferences.WorldScreen;
+        itemDescriptionScreen = itemDescriptionScreen != null ? itemDescriptionScreen : uiReferences.ItemDescriptionScreen;
+        hotbar = hotbar != null ? hotbar : uiReferences.Hotbar;
     }
 
     // Builds the row highlight that marks which inventory row is mirrored into the hotbar.
@@ -35,8 +29,7 @@ public partial class InventoryController
         if (canvas != null)
             ResolveInventoryScreens(canvas);
 
-        Transform greyGrid = FindDescendantByName(expandableBotleft, "GreyGrid");
-        ItemGrid eblItemGrid = greyGrid != null ? greyGrid.GetComponent<ItemGrid>() : null;
+        ItemGrid eblItemGrid = uiReferences != null ? uiReferences.GetItemGrid(expandableBotleft) : null;
 
         if (inventoryHotbarHighlight == null || eblItemGrid == null || canvas == null)
         {
@@ -50,7 +43,7 @@ public partial class InventoryController
         inventoryHotbarHighlight.SetSize(1, 1);
         inventoryHotbarHighlight.SetBehind();
         inventoryHotbarHighlight.SetParent(eblItemGrid);
-        inventoryHotbarHighlight.SetPosition(eblItemGrid, 0, 2);
+        inventoryHotbarHighlight.SetPosition(eblItemGrid, 0, hotbarInventoryRow);
     }
 
     // Reuses an existing highlighter instance if present, otherwise creates one for hotbar-row highlighting.
@@ -69,10 +62,10 @@ public partial class InventoryController
     // Registers HUD elements with the toggle manager so they hide while inventory screens are open.
     private void AddUIHUD(Transform uiElement)
     {
-        if (inventoryToggleManager == null || uiElement == null)
+        if (inventoryVisibilityController == null || uiElement == null)
             return;
 
-        inventoryToggleManager.AddHUD(uiElement.gameObject);
+        inventoryVisibilityController.AddHUD(uiElement.gameObject);
         InitializeGridInteract(uiElement);
         InitializeGridToHUD(uiElement);
     }
@@ -86,7 +79,7 @@ public partial class InventoryController
             return;
         }
 
-        Transform greyGrid = FindDescendantByName(uiElement, "GreyGrid");
+        GameObject greyGrid = uiReferences != null ? uiReferences.GetGridObject(uiElement) : null;
         if (greyGrid == null)
         {
             Debug.LogWarning($"GreyGrid not found as a child of {uiElement.name}.");
@@ -100,16 +93,16 @@ public partial class InventoryController
             return;
         }
 
-        inventoryToggleManager.AddHUD(greyGrid.gameObject);
+        inventoryVisibilityController.AddHUD(greyGrid);
     }
 
     // Registers a player inventory screen so it opens/closes with the inventory toggle.
     private void AddUIInventory(Transform uiElement)
     {
-        if (inventoryToggleManager == null || uiElement == null)
+        if (inventoryVisibilityController == null || uiElement == null)
             return;
 
-        inventoryToggleManager.AddPlayerScreen(uiElement.gameObject);
+        inventoryVisibilityController.AddPlayerScreen(uiElement.gameObject);
         InitializeGridInteract(uiElement);
         InitializeGridToInventory(uiElement);
     }
@@ -123,7 +116,7 @@ public partial class InventoryController
             return;
         }
 
-        Transform greyGrid = FindDescendantByName(uiElement, "GreyGrid");
+        GameObject greyGrid = uiReferences != null ? uiReferences.GetGridObject(uiElement) : null;
         if (greyGrid == null)
             return;
 
@@ -134,17 +127,13 @@ public partial class InventoryController
             return;
         }
 
-        inventoryToggleManager.AddPlayerScreen(greyGrid.gameObject);
+        inventoryVisibilityController.AddPlayerScreen(greyGrid);
     }
 
     // Finds the GridInteract component that reports pointer enter/exit to the inventory controller.
     private void InitializeGridInteract(Transform uiElement)
     {
-        Transform greyGrid = FindDescendantByName(uiElement, "GreyGrid");
-        if (greyGrid == null)
-            return;
-
-        gridInteract = greyGrid.GetComponent<GridInteract>();
+        gridInteract = uiReferences != null ? uiReferences.GetGridInteract(uiElement) : null;
         if (gridInteract == null)
             Debug.LogError("GridInteract component is missing on GreyGrid.");
     }

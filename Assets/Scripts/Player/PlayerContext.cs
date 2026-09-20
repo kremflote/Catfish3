@@ -7,13 +7,13 @@ public class PlayerContext : MonoBehaviour
 {
     [SerializeField] private PlayerInputState input;
     [SerializeField] private PlayerStateMachine stateMachine;
-    [SerializeField] private InventoryToggleManager inventoryToggleManager;
+    [SerializeField] private InventoryVisibilityController inventoryVisibilityController;
     [SerializeField] private FirstPersonController firstPersonController;
     [SerializeField] private Camera mainCamera;
 
     public PlayerInputState Input => input;
     public PlayerStateMachine StateMachine => stateMachine;
-    public InventoryToggleManager InventoryToggleManager => inventoryToggleManager;
+    public InventoryVisibilityController InventoryVisibilityController => inventoryVisibilityController;
     public FirstPersonController FirstPersonController => firstPersonController;
     public Camera MainCamera => mainCamera;
 
@@ -32,8 +32,8 @@ public class PlayerContext : MonoBehaviour
         if (stateMachine == null)
             stateMachine = GetComponent<PlayerStateMachine>();
 
-        if (inventoryToggleManager == null)
-            inventoryToggleManager = GetComponentInChildren<InventoryToggleManager>(true);
+        if (inventoryVisibilityController == null)
+            inventoryVisibilityController = GetComponentInChildren<InventoryVisibilityController>(true);
 
         if (firstPersonController == null)
             firstPersonController = GetComponentInChildren<FirstPersonController>(true);

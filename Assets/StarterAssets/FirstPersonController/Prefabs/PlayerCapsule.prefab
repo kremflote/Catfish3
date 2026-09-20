@@ -241,7 +241,7 @@ MonoBehaviour:
   BottomClamp: -89
   playerContext: {fileID: 0}
   mainCameraObject: {fileID: 0}
-  inventoryToggleManager: {fileID: 0}
+  inventoryVisibilityController: {fileID: 0}
   stateMachine: {fileID: 0}
   selectionManager: {fileID: 0}
 --- !u!114 &1978471637655604388
@@ -287,7 +287,7 @@ MonoBehaviour:
   clickReleasedThisFrame: 0
   pointerPosition: {x: 0, y: 0}
   pointerDelta: {x: 0, y: 0}
-  inventoryToggleManager: {fileID: 0}
+  inventoryVisibilityController: {fileID: 0}
   inventoryController: {fileID: 0}
   selectionManager: {fileID: 0}
 --- !u!114 &8616685848737228376

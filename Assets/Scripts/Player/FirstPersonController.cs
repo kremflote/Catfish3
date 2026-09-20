@@ -79,7 +79,7 @@ namespace StarterAssets
         [Header("References")]
         [SerializeField] private PlayerContext playerContext;
         [SerializeField] private GameObject mainCameraObject;
-        [SerializeField] private InventoryToggleManager inventoryToggleManager;
+        [SerializeField] private InventoryVisibilityController inventoryVisibilityController;
         [SerializeField] private PlayerStateMachine stateMachine;
         [SerializeField] private SelectionManager selectionManager;
 
@@ -107,7 +107,7 @@ namespace StarterAssets
         private Vector3 targetColliderCenter;
         private const float _threshold = 0.01f;
 
-        public InventoryToggleManager InventoryToggleManager => inventoryToggleManager;
+        public InventoryVisibilityController InventoryVisibilityController => inventoryVisibilityController;
         public PlayerStateMachine StateMachine => stateMachine;
         public PlayerInputState Input => _input;
         public SelectionManager SelectionManager => selectionManager;
@@ -171,8 +171,8 @@ namespace StarterAssets
             if (mainCameraObject == null)
                 mainCameraObject = playerContext.MainCamera != null ? playerContext.MainCamera.gameObject : null;
 
-            if (inventoryToggleManager == null)
-                inventoryToggleManager = playerContext.InventoryToggleManager;
+            if (inventoryVisibilityController == null)
+                inventoryVisibilityController = playerContext.InventoryVisibilityController;
 
             if (_input == null)
                 _input = playerContext.Input != null ? playerContext.Input : GetComponent<PlayerInputState>();
@@ -188,8 +188,8 @@ namespace StarterAssets
             if (_mainCamera == null)
                 Debug.LogError("Main camera reference is missing.", this);
 
-            if (inventoryToggleManager == null)
-                Debug.LogError("InventoryToggleManager reference is missing.", this);
+            if (inventoryVisibilityController == null)
+                Debug.LogError("InventoryVisibilityController reference is missing.", this);
 
             if (_input == null)
                 Debug.LogError("PlayerInputState reference is missing.", this);

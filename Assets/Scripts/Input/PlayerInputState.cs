@@ -34,7 +34,7 @@ namespace StarterAssets
         public Vector2 pointerDelta;
 
         [Header("Inventory Input")]
-        [SerializeField] private InventoryToggleManager inventoryToggleManager;
+        [SerializeField] private InventoryVisibilityController inventoryVisibilityController;
         [SerializeField] private InventoryController inventoryController;
 
         public event Action OnTabPressed;
@@ -223,10 +223,10 @@ namespace StarterAssets
         // Handles the extra bookkeeping needed when opening or closing inventory with a held item.
         private void HandleInventoryToggleInput()
         {
-            if (inventoryToggleManager == null || inventoryController == null)
+            if (inventoryVisibilityController == null || inventoryController == null)
                 return;
 
-            bool isOpen = inventoryToggleManager.GetIsOpen();
+            bool isOpen = inventoryVisibilityController.IsOpen;
 
             if (isOpen && !inventoryController.SelectedItemIsNull())
             {
@@ -260,14 +260,14 @@ namespace StarterAssets
             if (inventoryController == null)
                 inventoryController = transform.root.GetComponentInChildren<InventoryController>(true);
 
-            if (inventoryToggleManager == null)
-                inventoryToggleManager = transform.root.GetComponentInChildren<InventoryToggleManager>(true);
+            if (inventoryVisibilityController == null)
+                inventoryVisibilityController = transform.root.GetComponentInChildren<InventoryVisibilityController>(true);
 
             if (inventoryController == null)
                 Debug.LogWarning("InventoryController reference is missing.", this);
 
-            if (inventoryToggleManager == null)
-                Debug.LogWarning("InventoryToggleManager reference is missing.", this);
+            if (inventoryVisibilityController == null)
+                Debug.LogWarning("InventoryVisibilityController reference is missing.", this);
         }
 
         // Stores movement direction as plain data so movement code does not need to know about Unity input events.

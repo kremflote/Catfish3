@@ -33,7 +33,7 @@ public partial class InventoryController
     // Debug input handler for creating a held random item without placing it yet.
     private void HandleCreateRandomItem()
     {
-        if (selectedItem == null)
+        if (inventoryCursor == null || !inventoryCursor.HasItem)
             CreateRandomItem();
     }
 
@@ -52,17 +52,17 @@ public partial class InventoryController
     // Routes mouse buttons to inventory actions while keeping PlayerInputState independent of inventory details.
     private void HandleMouseClick(InventoryMouseButton button)
     {
+        if (button == InventoryMouseButton.Right && inventoryCursor.HasItem)
+        {
+            FlipSelectedItem();
+            return;
+        }
+
         if (selectedItemGrid == null || IsPointerOffGrid())
             return;
 
         if (button == InventoryMouseButton.Left)
-        {
             HandleLeftMouseClick();
-        }
-        else if (button == InventoryMouseButton.Right && selectedItem != null)
-        {
-            FlipSelectedItem();
-        }
     }
 
     // Left click is the inventory interaction button: pickup when empty-handed, place when holding an item.

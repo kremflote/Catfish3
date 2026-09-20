@@ -238,6 +238,7 @@ public struct InventoryItemSnapshot
     public int x;
     public int y;
     public float rotation;
+    public int quantity;
 
     public InventoryItemSnapshot(InventoryItemEntry entry)
     {
@@ -246,6 +247,7 @@ public struct InventoryItemSnapshot
         x = entry.GridPosition.x;
         y = entry.GridPosition.y;
         rotation = entry.Rotation;
+        quantity = entry.Quantity;
     }
 }
 

@@ -1,15 +1,19 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 using StarterAssets;
 
-public class InventoryToggleManager : MonoBehaviour
+public class InventoryVisibilityController : MonoBehaviour
 {
-    public GameObject[] playerScreens;
-    public List<GameObject> playerHUDs = new List<GameObject>();
+    [FormerlySerializedAs("playerScreens")]
+    [SerializeField] private List<GameObject> inventoryScreens = new List<GameObject>();
+    [FormerlySerializedAs("playerHUDs")]
+    [SerializeField] private List<GameObject> hudElements = new List<GameObject>();
     private bool isOpen = false;
     private bool isHUDVisible = true;
     [SerializeField] private PlayerInputState playerInputState;
 
+    public bool IsOpen => isOpen;
 
     // Subscribes to the player's Tab/input event when this manager becomes active.
     void OnEnable()
@@ -28,11 +32,6 @@ public class InventoryToggleManager : MonoBehaviour
             playerInputState.OnTabPressed -= ToggleInventory;
     }
 
-    public bool GetIsOpen()
-    {
-        return isOpen;
-    }
-
     private void Awake()
     {
         InitializeReferences();
@@ -48,23 +47,36 @@ public class InventoryToggleManager : MonoBehaviour
             Debug.LogWarning("PlayerInputState reference is missing.", this);
     }
 
-    // Opens/closes registered inventory screens and inversely toggles the normal HUD.
-    void ToggleInventory()
+    // Flips inventory visibility, used by Tab input.
+    public void ToggleInventory()
     {
-        if (playerScreens == null)
+        SetInventoryOpen(!isOpen);
+    }
+
+    // Explicitly opens inventory screens and hides normal HUD elements.
+    public void OpenInventory()
+    {
+        SetInventoryOpen(true);
+    }
+
+    // Explicitly closes inventory screens and restores normal HUD elements.
+    public void CloseInventory()
+    {
+        SetInventoryOpen(false);
+    }
+
+    // Applies one visibility state to every registered inventory/HUD object.
+    public void SetInventoryOpen(bool open)
+    {
+        isOpen = open;
+
+        foreach (GameObject screen in inventoryScreens)
         {
-            Debug.LogWarning("playerScreens is null. Cannot toggle inventory.");
-            return;
+            if (screen != null)
+                screen.SetActive(isOpen);
         }
-        isOpen = !isOpen;
-        foreach (GameObject screen in playerScreens)
-        {
-                
-                if (screen != null)
-                    screen.SetActive(isOpen);
-                
-        }
-        ToggleHUD(!isOpen);
+
+        SetHUDVisible(!isOpen);
     }
 
     // Registers an always-visible HUD element, such as the hotbar, so it can hide while inventory is open.
@@ -76,13 +88,13 @@ public class InventoryToggleManager : MonoBehaviour
             return;
         }
 
-        if (playerHUDs.Contains(hudToAdd))
+        if (hudElements.Contains(hudToAdd))
         {
             Debug.LogWarning($"{hudToAdd.name} is already in the HUD list.");
             return;
         }
 
-        playerHUDs.Add(hudToAdd);
+        hudElements.Add(hudToAdd);
         if (isHUDVisible) // Ensure newly added HUD is visible if HUDs are currently visible
         {
             hudToAdd.SetActive(true);
@@ -95,7 +107,7 @@ public class InventoryToggleManager : MonoBehaviour
     {
         if (hudToRemove == null) return;
 
-        if (playerHUDs.Remove(hudToRemove))
+        if (hudElements.Remove(hudToRemove))
         {
             Debug.Log($"Removed {hudToRemove.name} from the HUD list.");
         }
@@ -106,14 +118,10 @@ public class InventoryToggleManager : MonoBehaviour
     }
 
     // Shows or hides every registered HUD element together.
-    public void ToggleHUD(bool show)
+    public void SetHUDVisible(bool show)
     {
         isHUDVisible = show;
-        if (!isHUDVisible)
-        {
-
-        }
-        foreach (GameObject hud in playerHUDs)
+        foreach (GameObject hud in hudElements)
         {
             if (hud != null)
             {
@@ -125,17 +133,15 @@ public class InventoryToggleManager : MonoBehaviour
     // Removes a full-screen inventory panel from the open/close list.
     public void RemovePlayerScreen(GameObject screenToRemove)
     {
-        if (playerScreens == null || screenToRemove == null) return;
+        if (screenToRemove == null) return;
 
-        List<GameObject> screenList = new List<GameObject>(playerScreens);
-        if (screenList.Remove(screenToRemove))
+        if (inventoryScreens.Remove(screenToRemove))
         {
-            playerScreens = screenList.ToArray();
-            Debug.Log($"Removed {screenToRemove.name} from playerScreens.");
+            Debug.Log($"Removed {screenToRemove.name} from inventory screens.");
         }
         else
         {
-            Debug.LogWarning($"Screen {screenToRemove.name} was not found in playerScreens.");
+            Debug.LogWarning($"Screen {screenToRemove.name} was not found in inventory screens.");
         }
     }
 
@@ -147,16 +153,13 @@ public class InventoryToggleManager : MonoBehaviour
             return;
         }
 
-        List<GameObject> screenList = new List<GameObject>(playerScreens ?? new GameObject[0]);
-
-        if (screenList.Contains(screenToAdd))
+        if (inventoryScreens.Contains(screenToAdd))
         {
 
             return;
         }
 
-        screenList.Add(screenToAdd);
-        playerScreens = screenList.ToArray();
-
+        inventoryScreens.Add(screenToAdd);
+        screenToAdd.SetActive(isOpen);
     }
 }

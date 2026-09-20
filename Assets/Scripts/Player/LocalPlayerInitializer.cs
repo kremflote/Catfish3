@@ -51,8 +51,8 @@ public class LocalPlayerInitializer : NetworkBehaviour
 
         if (managersGO == null)
         {
-            InventoryToggleManager inventoryToggleManager = GetComponentInChildren<InventoryToggleManager>(true);
-            managersGO = inventoryToggleManager != null ? inventoryToggleManager.transform.parent.gameObject : null;
+            InventoryVisibilityController inventoryVisibilityController = GetComponentInChildren<InventoryVisibilityController>(true);
+            managersGO = inventoryVisibilityController != null ? inventoryVisibilityController.transform.parent.gameObject : null;
         }
     }
 
@@ -153,8 +153,8 @@ public class LocalPlayerInitializer : NetworkBehaviour
         if (managersGO == null)
             return;
 
-        var inventoryToggleManager = managersGO.GetComponentInChildren<InventoryToggleManager>(true);
-        if (inventoryToggleManager != null) inventoryToggleManager.enabled = true;
+        var inventoryVisibilityController = managersGO.GetComponentInChildren<InventoryVisibilityController>(true);
+        if (inventoryVisibilityController != null) inventoryVisibilityController.enabled = true;
 
         var hotbarController = managersGO.GetComponentInChildren<HotbarController>(true);
         if (hotbarController != null) hotbarController.enabled = true;

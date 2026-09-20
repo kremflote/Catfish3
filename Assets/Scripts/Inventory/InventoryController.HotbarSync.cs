@@ -23,8 +23,6 @@ public partial class InventoryController
             return;
         }
 
-        int hotbarRow = 2;
-        int hotbarTargetRow = 0;
         int width = mainItemGrid.GetGridSizeWidth();
         bool[] occupied = new bool[width];
 
@@ -36,8 +34,8 @@ public partial class InventoryController
             if (occupied[i])
                 continue;
 
-            InventoryItemEntry entry = mainItemGrid.GetEntryAt(i, hotbarRow);
-            InventoryItemUI item = mainItemGrid.GetItemAt(i, hotbarRow);
+            InventoryItemEntry entry = mainItemGrid.GetEntryAt(i, hotbarInventoryRow);
+            InventoryItemUI item = mainItemGrid.GetItemAt(i, hotbarInventoryRow);
 
             if (entry != null && entry.Height <= 1)
             {
@@ -79,13 +77,11 @@ public partial class InventoryController
         }
 
         int mainGridWidth = mainItemGrid.GetGridSizeWidth();
-        int targetRow = 2;
-
         for (int i = 0; i < mainGridWidth; i++)
         {
-            InventoryItemUI existingItem = mainItemGrid.GetItemAt(i, targetRow);
+            InventoryItemUI existingItem = mainItemGrid.GetItemAt(i, hotbarInventoryRow);
 
-            if (existingItem != null && existingItem.GetonGridPositionY() == targetRow)
+            if (existingItem != null && existingItem.GetonGridPositionY() == hotbarInventoryRow)
                 mainItemGrid.ClearItem(existingItem);
         }
 
@@ -99,11 +95,11 @@ public partial class InventoryController
             int targetColumn = i;
             if (targetColumn + entry.Width <= mainGridWidth)
             {
-                mainItemGrid.PlaceItem(item, targetColumn, targetRow);
+                mainItemGrid.PlaceItem(item, targetColumn, hotbarInventoryRow);
             }
             else
             {
-                Debug.LogWarning($"Item '{entry.ItemData.name}' doesn't fit at ({targetColumn}, {targetRow}) in main grid.");
+                Debug.LogWarning($"Item '{entry.ItemData.name}' doesn't fit at ({targetColumn}, {hotbarInventoryRow}) in main grid.");
             }
         }
     }

@@ -15,17 +15,19 @@ public partial class InventoryController : MonoBehaviour
 
     private List<Transform> playerScreens;
     private List<Transform> playerHUDs;
-    private InventoryItemUI selectedItem;
     private InventoryItemUI highlightItem;
     private ItemGrid lastHoveredGrid;
     private InventoryHighlighter inventoryHighlight;
-    private RectTransform rectTransform;
     private const string InventorySaveKey = "catfish.inventory.main";
     [SerializeField] private PlayerInputState playerInputState;
-    [SerializeField] private InventoryToggleManager inventoryToggleManager;
+    [SerializeField] private InventoryVisibilityController inventoryVisibilityController;
     [SerializeField] private HotbarController hotbarController;
+    [SerializeField] private InventoryCursor inventoryCursor;
+    [SerializeField] private InventoryUIReferences uiReferences;
     [SerializeField] private ItemDatabase itemDatabase;
     [SerializeField] private InventoryHighlighter inventoryHotbarHighlight;
+    [SerializeField] private int hotbarInventoryRow = 2;
+    [SerializeField] private int hotbarTargetRow = 0;
     [SerializeField] private Transform expandableBotleft;
     [SerializeField] private Transform expandableBotright;
     [SerializeField] private Transform expandableTopleft;
@@ -34,9 +36,6 @@ public partial class InventoryController : MonoBehaviour
     [SerializeField] private Transform worldScreen;
     [SerializeField] private Transform itemDescriptionScreen;
     [SerializeField] private Transform hotbar;
-
-    // Remembers where the held item came from so cancel can put it back.
-    public LastPlacement? lastPlacement;
 
     [SerializeField] private GameObject itemPrefab;
     [SerializeField] private Transform canvasTransform;
@@ -52,8 +51,8 @@ public partial class InventoryController : MonoBehaviour
     // Runs every frame so a held item follows the pointer and hover highlights stay current.
     private void Update()
     {
-        HandleItemIconDrag();
-        if (inventoryToggleManager.GetIsOpen() == true && !IsPointerOffGrid())
+        inventoryCursor?.UpdateDrag(GetPointerPosition(), GetCanvasEventCamera());
+        if (inventoryVisibilityController != null && inventoryVisibilityController.IsOpen && !IsPointerOffGrid())
         {
             HandleHighlight();
         }
@@ -62,7 +61,7 @@ public partial class InventoryController : MonoBehaviour
     // Used by input/state code to know whether closing inventory must first return a held item.
     public bool SelectedItemIsNull()
     {
-        return selectedItem == null;
+        return inventoryCursor == null || !inventoryCursor.HasItem;
     }
 
     // Collects references from the player prefab so the inventory can work when spawned over the network.
@@ -71,7 +70,11 @@ public partial class InventoryController : MonoBehaviour
         playerScreens = new List<Transform>();
         playerHUDs = new List<Transform>();
         inventoryHighlight = GetComponent<InventoryHighlighter>();
-        InitializeInventoryToggleManager();
+        inventoryCursor = inventoryCursor != null ? inventoryCursor : GetComponent<InventoryCursor>();
+        if (inventoryCursor == null)
+            inventoryCursor = gameObject.AddComponent<InventoryCursor>();
+
+        InitializeInventoryVisibilityController();
 
         Transform player = transform.root;
         Transform canvas = canvasTransform != null ? canvasTransform : player.GetComponentInChildren<Canvas>(true)?.transform;
@@ -81,6 +84,13 @@ public partial class InventoryController : MonoBehaviour
             return;
         }
         canvasTransform = canvas;
+        inventoryCursor.Initialize(canvasTransform);
+
+        if (uiReferences == null)
+            uiReferences = canvas.GetComponentInChildren<InventoryUIReferences>(true);
+
+        if (uiReferences == null)
+            uiReferences = canvas.gameObject.AddComponent<InventoryUIReferences>();
 
         if (playerInputState == null)
             playerInputState = player.GetComponentInChildren<PlayerInputState>(true);
@@ -91,8 +101,7 @@ public partial class InventoryController : MonoBehaviour
         ResolveInventoryScreens(canvas);
         InitializeHotbarHighlight();
 
-        Transform greyGrid = FindDescendantByName(expandableBotleft, "GreyGrid");
-        ItemGrid itemGrid = greyGrid != null ? greyGrid.GetComponent<ItemGrid>() : null;
+        ItemGrid itemGrid = uiReferences != null ? uiReferences.GetItemGrid(expandableBotleft) : null;
         mainItemGrid = mainItemGrid != null ? mainItemGrid : itemGrid;
 
         if (hotbarController == null)
@@ -112,22 +121,21 @@ public partial class InventoryController : MonoBehaviour
         AddUIInventory(playerScreen);
     }
 
-    // Finds the toggle manager that actually opens/closes inventory UI.
-    private void InitializeInventoryToggleManager()
+    // Finds the controller that opens/closes inventory UI.
+    private void InitializeInventoryVisibilityController()
     {
-        if (inventoryToggleManager == null)
-            inventoryToggleManager = transform.root.GetComponentInChildren<InventoryToggleManager>(true);
+        if (inventoryVisibilityController == null)
+            inventoryVisibilityController = transform.root.GetComponentInChildren<InventoryVisibilityController>(true);
 
-        if (inventoryToggleManager == null)
-            Debug.LogError("InventoryToggleManager reference is missing.", this);
+        if (inventoryVisibilityController == null)
+            Debug.LogError("InventoryVisibilityController reference is missing.", this);
     }
 
     // Debug/prototype helper: creates a random item, then tries to place it into the current target grid.
     private void InsertRandomItem()
     {
         CreateRandomItem();
-        InventoryItemUI itemToInsert = selectedItem;
-        selectedItem = null;
+        InventoryItemUI itemToInsert = inventoryCursor.Release();
         InsertItem(itemToInsert);
     }
 
@@ -142,6 +150,13 @@ public partial class InventoryController : MonoBehaviour
         {
             Debug.LogError("No inventory grid is available for item insertion.", this);
             return false;
+        }
+
+        targetGrid.TryStackIntoExistingItems(itemToInsert);
+        if (ItemIsEmpty(itemToInsert))
+        {
+            Destroy(itemToInsert.gameObject);
+            return true;
         }
 
         Vector2Int? positionOnGrid = targetGrid.FindSpaceForObject(itemToInsert);
@@ -189,18 +204,15 @@ public partial class InventoryController : MonoBehaviour
             return;
         }
 
-        selectedItem = itemUI;
-        rectTransform = itemUI.GetComponent<RectTransform>();
-        rectTransform.localScale = Vector3.one;
-
         itemUI.Set(itemData);
+        inventoryCursor.Hold(itemUI);
     }
 
     // Rotates the selected item entry and its icon so grid size and visuals stay in sync.
     private void FlipSelectedItem(InventoryItemUI itemToFlip = null)
     {
         // Flips given item, or defaults to selected item.
-        InventoryItemUI item = itemToFlip ?? selectedItem;
+        InventoryItemUI item = itemToFlip ?? inventoryCursor.HeldItem;
 
         if (item == null)
         {
@@ -208,17 +220,23 @@ public partial class InventoryController : MonoBehaviour
             return;
         }
 
-        item.FlipItemInventory(RotationAngle);
-        item.transform.localRotation = Quaternion.Euler(0, 0, item.zRotation);
+        if (item == inventoryCursor.HeldItem)
+        {
+            inventoryCursor.RotateHeld(RotationAngle);
+        }
+        else
+        {
+            item.FlipItemInventory(RotationAngle);
+        }
     }
 
     // Handles the core click behavior: pick up from a grid, or place the currently held item.
     private void InteractWithItem()
     {
-        if(inventoryToggleManager.GetIsOpen() == true) {
+        if(inventoryVisibilityController != null && inventoryVisibilityController.IsOpen) {
             Vector2Int tileGridPosition = GetMouseTileGridPosition();
 
-            if (selectedItem == null)
+            if (!inventoryCursor.HasItem)
                 {
 
                 PickUpItem(tileGridPosition);
@@ -239,12 +257,27 @@ public partial class InventoryController : MonoBehaviour
             return;
         }
 
-        bool success = selectedItemGrid.PlaceItem(selectedItem, tileGridPosition.x, tileGridPosition.y, out var overlappingItems);
+        InventoryItemUI heldItem = inventoryCursor.HeldItem;
+        if (selectedItemGrid.TryStackItemAt(heldItem, tileGridPosition.x, tileGridPosition.y))
+        {
+            if (ItemIsEmpty(heldItem))
+            {
+                inventoryCursor.Release();
+                Destroy(heldItem.gameObject);
+            }
+            else
+            {
+                heldItem.Refresh();
+            }
+
+            return;
+        }
+
+        bool success = selectedItemGrid.PlaceItem(heldItem, tileGridPosition.x, tileGridPosition.y, out var overlappingItems);
 
         if (success)
         {
-            selectedItem = null;
-            lastPlacement = null;
+            inventoryCursor.Release();
         }
         else if (overlappingItems != null && overlappingItems.Count > 0)
         {
@@ -257,17 +290,14 @@ public partial class InventoryController : MonoBehaviour
             var overlapItem = overlappingItems[0];
 
             // Pick up the overlapping item first.
-            selectedItemGrid.PickUpItem(overlapItem.GetonGridPositionX(), overlapItem.GetonGridPositionY());
+            InventoryItemUI pickedUpOverlap = selectedItemGrid.PickUpItem(overlapItem.GetonGridPositionX(), overlapItem.GetonGridPositionY());
 
             // Now try again to place the item.
-            bool retrySuccess = selectedItemGrid.PlaceItem(selectedItem, tileGridPosition.x, tileGridPosition.y, out var dummy);
+            bool retrySuccess = selectedItemGrid.PlaceItem(heldItem, tileGridPosition.x, tileGridPosition.y, out var dummy);
 
             if (retrySuccess)
             {
-                selectedItem = overlapItem;
-                lastPlacement = new LastPlacement(selectedItemGrid, new Vector2Int(overlapItem.GetonGridPositionX(), overlapItem.GetonGridPositionY()));
-                SetParentToCanvas();
-                UpdateHeldItemIcon();
+                inventoryCursor.Hold(pickedUpOverlap);
             }
             else
             {
@@ -280,47 +310,31 @@ public partial class InventoryController : MonoBehaviour
         }
     }
 
+    // Returns whether an item UI has no remaining stack quantity after a merge.
+    private bool ItemIsEmpty(InventoryItemUI item)
+    {
+        InventoryItemEntry entry = item != null ? item.EnsureEntry() : null;
+        return entry == null || entry.IsEmpty;
+    }
+
     // Removes an item from the grid model and turns its icon into the item currently carried by the cursor.
     private void PickUpItem(Vector2Int tileGridPosition)
     {
-        selectedItem = selectedItemGrid.PickUpItem(tileGridPosition.x, tileGridPosition.y);
+        InventoryItemUI pickedUpItem = selectedItemGrid.PickUpItem(tileGridPosition.x, tileGridPosition.y);
 
-        if (selectedItem == null)
+        if (pickedUpItem == null)
         {
 
             return;
         }
-        SetParentToCanvas();
-        UpdateHeldItemIcon();
-        lastPlacement = new LastPlacement(selectedItemGrid, tileGridPosition);
+
+        inventoryCursor.Hold(pickedUpItem, selectedItemGrid, tileGridPosition);
     }
 
     // Puts a held item back before closing inventory; this prevents invisible items from getting stranded.
     public bool CancelPickupItem()
     {
-        if (selectedItem != null)
-        {
-            if (lastPlacement.HasValue && lastPlacement.Value.itemGrid != null && lastPlacement.Value.position.HasValue)
-            {
-                Vector2Int position = lastPlacement.Value.position.Value;
-                lastPlacement.Value.itemGrid.PlaceItem(
-                    selectedItem,
-                    position.x,
-                    position.y
-                );
-            }
-            else
-            {
-                bool success = InsertItem(selectedItem);
-                if (!success)
-                {
-                    return false;
-                }
-            }
-        }
-        selectedItem = null;
-        lastPlacement = null;
-        return true;
+        return inventoryCursor == null || inventoryCursor.Cancel(InsertItem);
     }
 
     // Converts the current main inventory grid into JSON using stable item IDs rather than Unity object references.
@@ -407,26 +421,9 @@ public partial class InventoryController : MonoBehaviour
         if (lastHoveredGrid != null)
             return lastHoveredGrid;
 
-        if (lastPlacement.HasValue && lastPlacement.Value.itemGrid != null)
-            return lastPlacement.Value.itemGrid;
+        if (inventoryCursor != null && inventoryCursor.LastPlacement.HasValue && inventoryCursor.LastPlacement.Value.itemGrid != null)
+            return inventoryCursor.LastPlacement.Value.itemGrid;
 
         return mainItemGrid;
-    }
-    public struct LastPlacement
-    {
-        public ItemGrid itemGrid;
-        public Vector2Int? position;
-
-        public LastPlacement(ItemGrid itemGrid, Vector2Int position)
-        {
-            this.itemGrid = itemGrid;
-            this.position = position;
-        }
-
-        public LastPlacement(ItemGrid itemGrid)
-        {
-            this.itemGrid = itemGrid;
-            this.position = null;
-        }
     }
 }
