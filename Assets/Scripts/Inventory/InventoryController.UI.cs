@@ -119,6 +119,19 @@ public partial class InventoryController
         gridInteract = EnsureGridInteract(uiElement);
     }
 
+    // Adds the responsive layout pass that keeps placeholder panels inside the visible canvas.
+    private void InitializeResponsiveLayout()
+    {
+        if (canvasTransform == null)
+            return;
+
+        InventoryResponsiveLayout responsiveLayout = canvasTransform.GetComponent<InventoryResponsiveLayout>();
+        if (responsiveLayout == null)
+            responsiveLayout = canvasTransform.gameObject.AddComponent<InventoryResponsiveLayout>();
+
+        responsiveLayout.Initialize(canvasTransform, playerScreens, hotbar);
+    }
+
     // Registers every known inventory grid for direct pointer lookup, even if the panel is toggled elsewhere.
     private void RegisterKnownInventoryGrids()
     {

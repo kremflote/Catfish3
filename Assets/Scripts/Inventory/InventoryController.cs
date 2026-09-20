@@ -123,6 +123,7 @@ public partial class InventoryController : MonoBehaviour
         playerScreens.Add(itemDescriptionScreen);
         playerHUDs.Add(hotbar);
 
+        InitializeResponsiveLayout();
         RegisterKnownInventoryGrids();
         AddUIHUD(hotbar);
         AddUIInventory(expandableBotleft);
