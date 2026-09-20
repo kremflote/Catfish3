@@ -13,6 +13,20 @@ namespace StarterAssets
         Right
     }
 
+    public struct InventoryClickModifiers
+    {
+        public bool shift;
+        public bool ctrl;
+        public bool alt;
+
+        public InventoryClickModifiers(bool shift, bool ctrl, bool alt)
+        {
+            this.shift = shift;
+            this.ctrl = ctrl;
+            this.alt = alt;
+        }
+    }
+
     // Owner-side input cache used by player, selection, and boat control code.
     public class PlayerInputState : NetworkBehaviour
     {
@@ -42,7 +56,7 @@ namespace StarterAssets
         public event Action OnTPressed;
         public event Action OnUPressed;
         public event Action<int> OnHotbarKeyPressed;
-        public event Action<InventoryMouseButton> OnMouseClick;
+        public event Action<InventoryMouseButton, InventoryClickModifiers> OnMouseClick;
 
         public SelectionManager selectionManager;
 
@@ -105,7 +119,7 @@ namespace StarterAssets
             clickReleasedThisFrame = wasHeld && !clickHeld;
 
             if (value.isPressed)
-                OnMouseClick?.Invoke(InventoryMouseButton.Left);
+                OnMouseClick?.Invoke(InventoryMouseButton.Left, ReadInventoryClickModifiers());
         }
 
         // Receives mouse/look input and caches it, unless UI or another state has locked camera look.
@@ -147,6 +161,12 @@ namespace StarterAssets
         public void OnCrouch(InputValue value)
         {
             if (!CanAcceptInput) return;
+            if (inventoryVisibilityController != null && inventoryVisibilityController.IsOpen)
+            {
+                CrouchInput(false);
+                return;
+            }
+
             CrouchInput(value.isPressed);
         }
 
@@ -182,7 +202,20 @@ namespace StarterAssets
         public void OnRightClick(InputValue value)
         {
             if (!CanAcceptInput || !value.isPressed) return;
-            OnMouseClick?.Invoke(InventoryMouseButton.Right);
+            OnMouseClick?.Invoke(InventoryMouseButton.Right, ReadInventoryClickModifiers());
+        }
+
+        // Reads keyboard modifiers at the same moment as the mouse click.
+        private InventoryClickModifiers ReadInventoryClickModifiers()
+        {
+            Keyboard keyboard = Keyboard.current;
+            if (keyboard == null)
+                return new InventoryClickModifiers(false, false, false);
+
+            bool shift = keyboard.leftShiftKey.isPressed || keyboard.rightShiftKey.isPressed;
+            bool ctrl = keyboard.leftCtrlKey.isPressed || keyboard.rightCtrlKey.isPressed;
+            bool alt = keyboard.leftAltKey.isPressed || keyboard.rightAltKey.isPressed;
+            return new InventoryClickModifiers(shift, ctrl, alt);
         }
 
         // Selects hotbar slot 1; Unity calls this when the Hotbar1 action fires.

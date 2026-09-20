@@ -85,13 +85,31 @@ public sealed class InventoryItemEntry
         return removed;
     }
 
+    // Creates a new entry from part of this stack while preserving the item's rotation.
+    public InventoryItemEntry SplitQuantity(int amount)
+    {
+        int removed = RemoveQuantity(amount);
+        if (removed <= 0)
+            return null;
+
+        InventoryItemEntry splitEntry = new InventoryItemEntry(ItemData, removed);
+        splitEntry.Rotation = Rotation;
+        return splitEntry;
+    }
+
     // Moves quantity from this entry into another stack and returns how many items moved.
     public int TransferQuantityTo(InventoryItemEntry target)
+    {
+        return TransferQuantityTo(target, Quantity);
+    }
+
+    // Moves up to a requested amount into another compatible stack.
+    public int TransferQuantityTo(InventoryItemEntry target, int amount)
     {
         if (!CanStackWith(target))
             return 0;
 
-        int moved = target.AddQuantity(Quantity);
+        int moved = target.AddQuantity(Mathf.Min(amount, Quantity));
         RemoveQuantity(moved);
         return moved;
     }

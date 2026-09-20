@@ -236,6 +236,10 @@ namespace StarterAssets
             switch (mode)
             {
                 case PlayerInputMode.Inventory:
+                    if (_input != null)
+                        _input.CrouchInput(false);
+
+                    SetCrouched(false);
                     ApplyInputSettings(cursorLocked: false, lookEnabled: false, interactEnabled: false, rotationEnabled: false);
                     break;
                 case PlayerInputMode.WorldInteraction:

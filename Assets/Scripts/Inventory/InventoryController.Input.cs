@@ -50,7 +50,7 @@ public partial class InventoryController
     }
 
     // Routes mouse buttons to inventory actions while keeping PlayerInputState independent of inventory details.
-    private void HandleMouseClick(InventoryMouseButton button)
+    private void HandleMouseClick(InventoryMouseButton button, InventoryClickModifiers modifiers)
     {
         if (button == InventoryMouseButton.Right && inventoryCursor.HasItem)
         {
@@ -62,15 +62,33 @@ public partial class InventoryController
             return;
 
         if (button == InventoryMouseButton.Left)
-            HandleLeftMouseClick();
+            HandleLeftMouseClick(modifiers);
     }
 
     // Left click is the inventory interaction button: pickup when empty-handed, place when holding an item.
-    private void HandleLeftMouseClick()
+    private void HandleLeftMouseClick(InventoryClickModifiers modifiers)
     {
         if (IsPointerOffGrid())
         {
             Debug.Log("Pointer is not on the grid.");
+            return;
+        }
+
+        if (modifiers.ctrl)
+        {
+            InteractWithSingleStackItem();
+            return;
+        }
+
+        if (modifiers.alt && !inventoryCursor.HasItem)
+        {
+            SplitStackFromGrid();
+            return;
+        }
+
+        if (modifiers.shift)
+        {
+            ConsolidateMatchingStacks();
             return;
         }
 

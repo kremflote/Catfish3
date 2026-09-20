@@ -61,7 +61,7 @@ public partial class InventoryController : MonoBehaviour
     // Used by input/state code to know whether closing inventory must first return a held item.
     public bool SelectedItemIsNull()
     {
-        return inventoryCursor == null || !inventoryCursor.HasItem;
+        return inventoryCursor == null || !inventoryCursor.HasAnyItem;
     }
 
     // Collects references from the player prefab so the inventory can work when spawned over the network.
@@ -248,7 +248,7 @@ public partial class InventoryController : MonoBehaviour
             }
     }
 
-    // Attempts placement and supports swapping with one overlapping item for Diablo-style inventory behavior.
+    // Attempts placement; overlapping items are displaced into the cursor queue.
     private void TryPlaceSelectedItem(Vector2Int tileGridPosition)
     {
         if (selectedItemGrid == null)
@@ -273,41 +273,231 @@ public partial class InventoryController : MonoBehaviour
             return;
         }
 
-        bool success = selectedItemGrid.PlaceItem(heldItem, tileGridPosition.x, tileGridPosition.y, out var overlappingItems);
+        bool success = selectedItemGrid.PlaceItemAndDisplace(
+            heldItem,
+            tileGridPosition.x,
+            tileGridPosition.y,
+            out List<InventoryItemUI> displacedItems);
 
-        if (success)
+        if (!success)
         {
-            inventoryCursor.Release();
+            Debug.Log("Failed to place item.");
+            return;
         }
-        else if (overlappingItems != null && overlappingItems.Count > 0)
+
+        inventoryCursor.Release();
+        inventoryCursor.EnqueueDisplacedItems(displacedItems, selectedItemGrid);
+    }
+
+    // Ctrl-left click either takes one from a stack or places one from the held stack.
+    private void InteractWithSingleStackItem()
+    {
+        Vector2Int tileGridPosition = GetMouseTileGridPosition();
+
+        if (inventoryCursor.HasItem)
+            TryPlaceSingleHeldItem(tileGridPosition);
+        else
+            TakeQuantityFromGrid(tileGridPosition, 1);
+    }
+
+    // Alt-left click takes roughly half of the clicked stack into the cursor.
+    private void SplitStackFromGrid()
+    {
+        Vector2Int tileGridPosition = GetMouseTileGridPosition();
+        InventoryItemUI item = selectedItemGrid.GetItemAt(tileGridPosition.x, tileGridPosition.y);
+        InventoryItemEntry entry = item != null ? item.EnsureEntry() : null;
+
+        if (entry == null || entry.Quantity <= 1)
+            return;
+
+        TakeQuantityFromGrid(tileGridPosition, Mathf.Max(1, entry.Quantity / 2));
+    }
+
+    // Shift-left click consolidates compatible stacks in the current grid, or auto-stacks the held item.
+    private void ConsolidateMatchingStacks()
+    {
+        if (selectedItemGrid == null)
+            return;
+
+        if (inventoryCursor.HasItem)
         {
-            if (overlappingItems.Count > 1)
+            InventoryItemUI heldItem = inventoryCursor.HeldItem;
+            selectedItemGrid.TryStackIntoExistingItems(heldItem);
+            RefreshOrDestroyHeldItem(heldItem);
+            return;
+        }
+
+        Vector2Int tileGridPosition = GetMouseTileGridPosition();
+        InventoryItemUI targetItem = selectedItemGrid.GetItemAt(tileGridPosition.x, tileGridPosition.y);
+        InventoryItemEntry targetEntry = targetItem != null ? targetItem.EnsureEntry() : null;
+
+        if (targetEntry == null || !targetEntry.IsStackable)
+            return;
+
+        foreach (InventoryItemUI sourceItem in selectedItemGrid.GetItems())
+        {
+            if (sourceItem == null || sourceItem == targetItem)
+                continue;
+
+            InventoryItemEntry sourceEntry = sourceItem.EnsureEntry();
+            if (sourceEntry == null)
+                continue;
+
+            sourceEntry.TransferQuantityTo(targetEntry);
+            selectedItemGrid.RefreshItemView(targetEntry);
+
+            if (sourceEntry.IsEmpty)
             {
-                Debug.LogWarning("Multiple overlapping items detected; can't auto-swap.");
-                return;  // Do not auto-swap if more than one item would be displaced.
-            }
-
-            var overlapItem = overlappingItems[0];
-
-            // Pick up the overlapping item first.
-            InventoryItemUI pickedUpOverlap = selectedItemGrid.PickUpItem(overlapItem.GetonGridPositionX(), overlapItem.GetonGridPositionY());
-
-            // Now try again to place the item.
-            bool retrySuccess = selectedItemGrid.PlaceItem(heldItem, tileGridPosition.x, tileGridPosition.y, out var dummy);
-
-            if (retrySuccess)
-            {
-                inventoryCursor.Hold(pickedUpOverlap);
+                selectedItemGrid.ClearItem(sourceItem);
+                Destroy(sourceItem.gameObject);
             }
             else
             {
-                Debug.LogWarning("Failed to place item even after swapping.");
+                sourceItem.Refresh();
             }
+
+            if (targetEntry.AvailableStackSpace <= 0)
+                break;
+        }
+    }
+
+    // Pulls a requested amount out of a grid stack and starts holding that new stack.
+    private bool TakeQuantityFromGrid(Vector2Int tileGridPosition, int amount)
+    {
+        InventoryItemUI sourceItem = selectedItemGrid.GetItemAt(tileGridPosition.x, tileGridPosition.y);
+        InventoryItemEntry sourceEntry = sourceItem != null ? sourceItem.EnsureEntry() : null;
+        if (sourceEntry == null || amount <= 0)
+            return false;
+
+        if (amount >= sourceEntry.Quantity)
+        {
+            PickUpItem(tileGridPosition);
+            return inventoryCursor.HasItem;
+        }
+
+        InventoryItemEntry splitEntry = sourceEntry.SplitQuantity(amount);
+        if (splitEntry == null)
+            return false;
+
+        sourceItem.Refresh();
+        InventoryItemUI splitItem = CreateItemUI(splitEntry);
+        if (splitItem == null)
+        {
+            sourceEntry.AddQuantity(splitEntry.Quantity);
+            sourceItem.Refresh();
+            return false;
+        }
+
+        inventoryCursor.Hold(
+            splitItem,
+            selectedItemGrid,
+            new Vector2Int(sourceItem.GetonGridPositionX(), sourceItem.GetonGridPositionY()));
+
+        return true;
+    }
+
+    // Places one item from the held stack into the clicked slot or compatible target stack.
+    private bool TryPlaceSingleHeldItem(Vector2Int tileGridPosition)
+    {
+        InventoryItemUI heldItem = inventoryCursor.HeldItem;
+        InventoryItemEntry heldEntry = heldItem != null ? heldItem.EnsureEntry() : null;
+        if (heldEntry == null)
+            return false;
+
+        if (TryTakeOneMatchingItemIntoHeldStack(tileGridPosition, heldEntry))
+            return true;
+
+        if (selectedItemGrid.TryStackItemAt(heldItem, tileGridPosition.x, tileGridPosition.y, 1))
+        {
+            RefreshOrDestroyHeldItem(heldItem);
+            return true;
+        }
+
+        InventoryItemEntry singleEntry = heldEntry.SplitQuantity(1);
+        if (singleEntry == null)
+            return false;
+
+        InventoryItemUI singleItem = CreateItemUI(singleEntry);
+        if (singleItem == null)
+        {
+            heldEntry.AddQuantity(singleEntry.Quantity);
+            RefreshOrDestroyHeldItem(heldItem);
+            return false;
+        }
+
+        bool placed = selectedItemGrid.PlaceItem(singleItem, tileGridPosition.x, tileGridPosition.y, out _);
+        if (!placed)
+        {
+            heldEntry.AddQuantity(singleEntry.Quantity);
+            Destroy(singleItem.gameObject);
+            heldItem.Refresh();
+            return false;
+        }
+
+        RefreshOrDestroyHeldItem(heldItem);
+        return true;
+    }
+
+    // When Ctrl-clicking a matching stack while holding that item, pull one more into the held stack.
+    private bool TryTakeOneMatchingItemIntoHeldStack(Vector2Int tileGridPosition, InventoryItemEntry heldEntry)
+    {
+        InventoryItemUI targetItem = selectedItemGrid.GetItemAt(tileGridPosition.x, tileGridPosition.y);
+        InventoryItemEntry targetEntry = targetItem != null ? targetItem.EnsureEntry() : null;
+        if (targetEntry == null || targetEntry == heldEntry || !targetEntry.CanStackWith(heldEntry))
+            return false;
+
+        int moved = targetEntry.TransferQuantityTo(heldEntry, 1);
+        if (moved <= 0)
+            return false;
+
+        inventoryCursor.HeldItem.Refresh();
+
+        if (targetEntry.IsEmpty)
+        {
+            selectedItemGrid.ClearItem(targetItem);
+            Destroy(targetItem.gameObject);
         }
         else
         {
-            Debug.Log("Failed to place item and no overlapping item to swap.");
+            targetItem.Refresh();
         }
+
+        return true;
+    }
+
+    // Creates a UI icon for an already-existing runtime entry, used by stack splitting.
+    private InventoryItemUI CreateItemUI(InventoryItemEntry entry)
+    {
+        if (entry == null || itemPrefab == null || canvasTransform == null)
+            return null;
+
+        InventoryItemUI itemUI = Instantiate(itemPrefab, canvasTransform, false).GetComponent<InventoryItemUI>();
+        if (itemUI == null)
+        {
+            Debug.LogError("Failed to instantiate InventoryItemUI.");
+            return null;
+        }
+
+        itemUI.Set(entry);
+        return itemUI;
+    }
+
+    // Refreshes stack text, or removes a held icon whose quantity reached zero.
+    private void RefreshOrDestroyHeldItem(InventoryItemUI heldItem)
+    {
+        if (heldItem == null)
+            return;
+
+        if (ItemIsEmpty(heldItem))
+        {
+            if (inventoryCursor.HeldItem == heldItem)
+                inventoryCursor.Release();
+
+            Destroy(heldItem.gameObject);
+            return;
+        }
+
+        heldItem.Refresh();
     }
 
     // Returns whether an item UI has no remaining stack quantity after a merge.

@@ -93,6 +93,33 @@ public class ItemGrid : MonoBehaviour
         return true;
     }
 
+    // Places an item even when other items are in the way, returning displaced icons for cursor queueing.
+    public bool PlaceItemAndDisplace(InventoryItemUI itemUI, int posX, int posY, out List<InventoryItemUI> displacedItems)
+    {
+        displacedItems = null;
+        if (itemUI == null)
+            return false;
+
+        InventoryPlacementResult checkResult = PlacementCheck(posX, posY, itemUI.Width, itemUI.Height);
+        if (checkResult.outOfBounds)
+        {
+            Debug.Log($"Item is out of bounds by {checkResult.overflowX} on X and {checkResult.overflowY} on Y.");
+            return false;
+        }
+
+        displacedItems = GetItemViews(checkResult.overlappingEntries);
+        if (displacedItems != null)
+        {
+            foreach (InventoryItemUI displacedItem in displacedItems)
+            {
+                ClearItem(displacedItem);
+            }
+        }
+
+        PlaceItem(itemUI, posX, posY);
+        return true;
+    }
+
     // Tries to merge a held item into the stack under a specific tile.
     public bool TryStackItemAt(InventoryItemUI sourceItem, int posX, int posY)
     {
@@ -100,6 +127,20 @@ public class ItemGrid : MonoBehaviour
         InventoryItemEntry targetEntry = model.GetEntry(posX, posY);
 
         if (!TryMoveQuantity(sourceEntry, targetEntry))
+            return false;
+
+        RefreshItemView(sourceEntry);
+        RefreshItemView(targetEntry);
+        return true;
+    }
+
+    // Tries to move only part of a held stack into the stack under a specific tile.
+    public bool TryStackItemAt(InventoryItemUI sourceItem, int posX, int posY, int amount)
+    {
+        InventoryItemEntry sourceEntry = sourceItem != null ? sourceItem.EnsureEntry() : null;
+        InventoryItemEntry targetEntry = model.GetEntry(posX, posY);
+
+        if (!TryMoveQuantity(sourceEntry, targetEntry, amount))
             return false;
 
         RefreshItemView(sourceEntry);
@@ -219,6 +260,19 @@ public class ItemGrid : MonoBehaviour
         return model.CreateSnapshot();
     }
 
+    // Returns visible item icons once each, useful for controller-level stack actions.
+    public List<InventoryItemUI> GetItems()
+    {
+        List<InventoryItemUI> items = new List<InventoryItemUI>();
+        foreach (InventoryItemEntry entry in model.GetEntries())
+        {
+            if (entry != null && itemViews.TryGetValue(entry, out InventoryItemUI item))
+                items.Add(item);
+        }
+
+        return items;
+    }
+
     // Clears the grid model and optionally destroys the UI item icons, used before loading a save.
     public void ClearAllItems(bool destroyItemViews)
     {
@@ -288,14 +342,20 @@ public class ItemGrid : MonoBehaviour
     // Moves quantity between compatible stacks, leaving item placement untouched.
     private bool TryMoveQuantity(InventoryItemEntry sourceEntry, InventoryItemEntry targetEntry)
     {
+        return TryMoveQuantity(sourceEntry, targetEntry, sourceEntry != null ? sourceEntry.Quantity : 0);
+    }
+
+    // Moves a requested quantity between compatible stacks, leaving item placement untouched.
+    private bool TryMoveQuantity(InventoryItemEntry sourceEntry, InventoryItemEntry targetEntry, int amount)
+    {
         if (sourceEntry == null || targetEntry == null || sourceEntry == targetEntry)
             return false;
 
-        return sourceEntry.TransferQuantityTo(targetEntry) > 0;
+        return sourceEntry.TransferQuantityTo(targetEntry, amount) > 0;
     }
 
     // Updates a visible item icon after its underlying entry changes quantity.
-    private void RefreshItemView(InventoryItemEntry entry)
+    public void RefreshItemView(InventoryItemEntry entry)
     {
         if (entry != null && itemViews.TryGetValue(entry, out InventoryItemUI item))
             item.Refresh();
